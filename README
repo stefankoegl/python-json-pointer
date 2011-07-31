@@ -1,0 +1,11 @@
+
+python-json-pointer: Resolve JSON Pointers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Library to resolve JSON Pointers according to
+http://tools.ietf.org/html/draft-pbryan-zyp-json-pointer-00
+
+See Sourcecode for Examples
+
+Website: https://github.com/stefankoegl/python-json-pointer
+Repository: https://github.com/stefankoegl/python-json-pointer.git
