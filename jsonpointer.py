@@ -69,39 +69,52 @@ def resolve_pointer(doc, pointer):
     True
     """
 
-    parts = pointer.split('/')
-    if parts.pop(0) != '':
-        raise JsonPointerException('location must starts with /')
-
-    parts = map(urllib.unquote, parts)
-
-    for part in parts:
-        doc = walk(doc, part)
-
-    return doc
+    pointer = JsonPointer(pointer)
+    return pointer.resolve(doc)
 
 
-def walk(doc, part):
-    """ Walks one step in doc and returns the referenced part """
+class JsonPointer(object):
+    """ A JSON Pointer that can reference parts of an JSON document """
 
-    if not part:
+    def __init__(self, pointer):
+        parts = pointer.split('/')
+        if parts.pop(0) != '':
+            raise JsonPointerException('location must starts with /')
+
+        self.parts = map(urllib.unquote, parts)
+
+
+    def resolve(self, doc):
+        """Resolves the pointer against doc and returns the referenced object"""
+
+        for part in self.parts:
+            doc = self.walk(doc, part)
+
         return doc
 
-    # Its not clear if a location "1" should be considered as 1 or "1"
-    # We prefer the integer-variant if possible
-    part_variants = _try_parse(part) + [part]
 
-    for variant in part_variants:
+    def walk(self, doc, part):
+        """ Walks one step in doc and returns the referenced part """
+
+        if not part:
+            return doc
+
+        # Its not clear if a location "1" should be considered as 1 or "1"
+        # We prefer the integer-variant if possible
+        part_variants = self._try_parse(part) + [part]
+
+        for variant in part_variants:
+            try:
+                return doc[variant]
+            except:
+                continue
+
+        raise JsonPointerException("'%s' not found in %s" % (part, doc))
+
+
+    @staticmethod
+    def _try_parse(val, cls=int):
         try:
-            return doc[variant]
+            return [cls(val)]
         except:
-            continue
-
-    raise JsonPointerException("'%s' not found in %s" % (part, doc))
-
-
-def _try_parse(val, cls=int):
-    try:
-        return [cls(val)]
-    except:
-        return []
+            return []
