@@ -56,17 +56,17 @@ def resolve_pointer(doc, pointer):
     >>> resolve_pointer(obj, '/') == obj
     True
 
-    >>> resolve_pointer(obj, '/foo')
-    {'another prop': {'baz': 'A string'}, 'anArray': [{'prop': 44}]}
+    >>> resolve_pointer(obj, '/foo') == obj['foo']
+    True
 
-    >>> resolve_pointer(obj, '/foo/another%20prop')
-    {'baz': 'A string'}
+    >>> resolve_pointer(obj, '/foo/another%20prop') == obj['foo']['another prop']
+    True
 
-    >>> resolve_pointer(obj, '/foo/another%20prop/baz')
-    'A string'
+    >>> resolve_pointer(obj, '/foo/another%20prop/baz') == obj['foo']['another prop']['baz']
+    True
 
-    >>> resolve_pointer(obj, '/foo/anArray/0')
-    {'prop': 44}
+    >>> resolve_pointer(obj, '/foo/anArray/0') == obj['foo']['anArray'][0]
+    True
     """
 
     parts = pointer.split('/')
