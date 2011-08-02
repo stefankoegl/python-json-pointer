@@ -47,7 +47,10 @@ class JsonPointerException(Exception):
     pass
 
 
-def resolve_pointer(doc, pointer):
+_nothing = object()
+
+
+def resolve_pointer(doc, pointer, default=_nothing):
     """
     Resolves pointer against doc and returns the referenced object
 
@@ -67,10 +70,14 @@ def resolve_pointer(doc, pointer):
 
     >>> resolve_pointer(obj, '/foo/anArray/0') == obj['foo']['anArray'][0]
     True
+
+    >>> resolve_pointer(obj, '/some/path', None) == None
+    True
+
     """
 
     pointer = JsonPointer(pointer)
-    return pointer.resolve(doc)
+    return pointer.resolve(doc, default)
 
 
 class JsonPointer(object):
@@ -84,11 +91,18 @@ class JsonPointer(object):
         self.parts = map(urllib.unquote, parts)
 
 
-    def resolve(self, doc):
+    def resolve(self, doc, default=_nothing):
         """Resolves the pointer against doc and returns the referenced object"""
 
         for part in self.parts:
-            doc = self.walk(doc, part)
+
+            try:
+                doc = self.walk(doc, part)
+            except JsonPointerException:
+                if default is _nothing:
+                    raise
+                else:
+                    return default
 
         return doc
 
