@@ -3,14 +3,14 @@
 from distutils.core import setup
 import re
 
-src = open('jsonpatch.py').read()
+src = open('jsonpointer.py').read()
 metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", src))
 docstrings = re.findall('"""(.*)"""', src)
 
-PACKAGE = 'jsonpatch'
+PACKAGE = 'jsonpointer'
 
 MODULES = (
-        'jsonpatch',
+        'jsonpointer',
 )
 
 AUTHOR_EMAIL = metadata['author']
