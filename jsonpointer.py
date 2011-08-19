@@ -107,6 +107,9 @@ class JsonPointer(object):
         return doc
 
 
+    get = resolve
+
+
     def walk(self, doc, part):
         """ Walks one step in doc and returns the referenced part """
 
