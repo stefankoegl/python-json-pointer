@@ -41,6 +41,7 @@ __license__ = 'Modified BSD License'
 
 
 import urllib
+from itertools import tee, izip
 
 
 class JsonPointerException(Exception):
@@ -80,6 +81,38 @@ def resolve_pointer(doc, pointer, default=_nothing):
     return pointer.resolve(doc, default)
 
 
+def set_pointer(doc, pointer, value):
+    """
+    Set a field to a given value
+
+    The field is indicates by a base location that is given in the constructor,
+    and an optional relative location in the call to set. If the path doesn't
+    exist, it is created if possible
+
+    >>> obj = {"foo": 2}
+    >>> pointer = JsonPointer('/bar')
+    >>> pointer.set(obj, 'one', '0')
+    >>> pointer.set(obj, 'two', '1')
+    >>> obj
+    {'foo': 2, 'bar': ['one', 'two']}
+
+    >>> obj = {"foo": 2, "bar": []}
+    >>> pointer = JsonPointer('/bar')
+    >>> pointer.set(obj, 5, '0/x')
+    >>> obj
+    {'foo': 2, 'bar': [{'x': 5}]}
+
+    >>> obj = {'foo': 2, 'bar': [{'x': 5}]}
+    >>> pointer = JsonPointer('/bar/0')
+    >>> pointer.set(obj, 10, 'y/0')
+    >>> obj
+    {'foo': 2, 'bar': [{'y': [10], 'x': 5}]}
+    """
+
+    pointer = JsonPointer(pointer)
+    pointer.set(doc, value)
+
+
 class JsonPointer(object):
     """ A JSON Pointer that can reference parts of an JSON document """
 
@@ -110,6 +143,48 @@ class JsonPointer(object):
     get = resolve
 
 
+    def set(self, doc, value, path=None):
+        """ Sets a field of doc to value
+
+        The location of the field is given by the pointers base location and
+        the optional path which is relative to the base location """
+
+        fullpath = list(self.parts)
+
+        if path:
+            fullpath += path.split('/')
+
+
+        for part, nextpart in pairwise(fullpath):
+            try:
+                doc = self.walk(doc, part)
+            except JsonPointerException:
+                step_val = [] if nextpart.isdigit() else {}
+                doc = self._set_value(doc, part, step_val)
+
+        self._set_value(doc, fullpath[-1], value)
+
+
+    @staticmethod
+    def _set_value(doc, part, value):
+        part = int(part) if part.isdigit() else part
+
+        if isinstance(doc, dict):
+            doc[part] = value
+
+        if isinstance(doc, list):
+            if len(doc) < part:
+                doc[part] = value
+
+            if len(doc) == part:
+                doc.append(value)
+
+            else:
+                raise IndexError
+
+        return doc[part]
+
+
     def walk(self, doc, part):
         """ Walks one step in doc and returns the referenced part """
 
@@ -135,3 +210,11 @@ class JsonPointer(object):
             return [cls(val)]
         except:
             return []
+
+
+
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = tee(iterable)
+    next(b, None)
+    return izip(a, b)
