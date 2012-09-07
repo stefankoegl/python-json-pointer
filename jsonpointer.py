@@ -31,11 +31,11 @@
 #
 
 """ Identify specific nodes in a JSON document according to
-http://tools.ietf.org/html/draft-pbryan-zyp-json-pointer-00 """
+http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-04 """
 
 # Will be parsed by setup.py to determine package metadata
-__author__ = 'Stefan Kögl <stefan@skoegl.net>'
-__version__ = '0.2'
+__author__ = 'Stefan K�gl <stefan@skoegl.net>'
+__version__ = '0.3'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
@@ -57,7 +57,7 @@ def resolve_pointer(doc, pointer, default=_nothing):
 
     >>> obj = {"foo": {"anArray": [ {"prop": 44}], "another prop": {"baz": "A string" }}}
 
-    >>> resolve_pointer(obj, '/') == obj
+    >>> resolve_pointer(obj, '') == obj
     True
 
     >>> resolve_pointer(obj, '/foo') == obj['foo']
@@ -121,7 +121,11 @@ class JsonPointer(object):
         if parts.pop(0) != '':
             raise JsonPointerException('location must starts with /')
 
-        self.parts = map(urllib.unquote, parts)
+        parts = map(urllib.unquote, parts)
+        parts = [part.replace('~1', '/') for part in parts]
+        parts = [part.replace('~0', '~') for part in parts]
+        self.parts = parts
+
 
 
     def resolve(self, doc, default=_nothing):
@@ -188,9 +192,6 @@ class JsonPointer(object):
     def walk(self, doc, part):
         """ Walks one step in doc and returns the referenced part """
 
-        if not part:
-            return doc
-
         # Its not clear if a location "1" should be considered as 1 or "1"
         # We prefer the integer-variant if possible
         part_variants = self._try_parse(part) + [part]
@@ -218,3 +219,4 @@ def pairwise(iterable):
     a, b = tee(iterable)
     next(b, None)
     return izip(a, b)
+__author__ = 'Stefan Kögl <stefan@skoegl.net>'
