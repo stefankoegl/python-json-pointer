@@ -40,8 +40,14 @@ __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
 
-import urllib
-from itertools import tee, izip
+try:
+    from urllib import unquote
+    from itertools import izip
+except ImportError: # Python 3
+    from urllib.parse import unquote
+    izip = zip
+
+from itertools import tee
 
 
 class JsonPointerException(Exception):
@@ -121,7 +127,7 @@ class JsonPointer(object):
         if parts.pop(0) != '':
             raise JsonPointerException('location must starts with /')
 
-        parts = map(urllib.unquote, parts)
+        parts = map(unquote, parts)
         parts = [part.replace('~1', '/') for part in parts]
         parts = [part.replace('~0', '~') for part in parts]
         self.parts = parts
