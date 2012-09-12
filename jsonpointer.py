@@ -34,7 +34,7 @@
 http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-04 """
 
 # Will be parsed by setup.py to determine package metadata
-__author__ = 'Stefan K�gl <stefan@skoegl.net>'
+__author__ = 'Stefan Kögl <stefan@skoegl.net>'
 __version__ = '0.3'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
@@ -219,4 +219,3 @@ def pairwise(iterable):
     a, b = tee(iterable)
     next(b, None)
     return izip(a, b)
-__author__ = 'Stefan Kögl <stefan@skoegl.net>'
