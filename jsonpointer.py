@@ -30,12 +30,13 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-""" Identify specific nodes in a JSON document according to
-http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-05 """
+""" Identify specific nodes in a JSON document (according to draft 05) """
+
+# http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-05
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
-__version__ = '0.3'
+__version__ = '0.4'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
