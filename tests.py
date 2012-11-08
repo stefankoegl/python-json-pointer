@@ -4,7 +4,7 @@
 import doctest
 import unittest
 import sys
-from jsonpointer import resolve_pointer
+from jsonpointer import resolve_pointer, EndOfList, JsonPointerException
 
 class SpecificationTests(unittest.TestCase):
     """ Tests all examples from the JSON Pointer specification """
@@ -36,6 +36,14 @@ class SpecificationTests(unittest.TestCase):
         self.assertEqual(resolve_pointer(doc, "/ "), 7)
         self.assertEqual(resolve_pointer(doc, "/m~0n"), 8)
 
+
+    def test_eol(self):
+        doc = {
+            "foo": ["bar", "baz"]
+        }
+
+        self.assertTrue(isinstance(resolve_pointer(doc, "/foo/-"), EndOfList))
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, "/foo/-/1")
 
 
 

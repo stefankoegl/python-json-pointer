@@ -31,7 +31,7 @@
 #
 
 """ Identify specific nodes in a JSON document according to
-http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-04 """
+http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-05 """
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
@@ -52,6 +52,18 @@ from itertools import tee
 
 class JsonPointerException(Exception):
     pass
+
+
+class EndOfList(object):
+    """ Result of accessing element "-" of a list """
+
+    def __init__(self, list_):
+        self.list_ = list_
+
+
+    def __repr__(self):
+        return '{cls}({lst})'.format(cls=self.__class__.__name__,
+                lst=repr(self.list_))
 
 
 _nothing = object()
@@ -198,25 +210,32 @@ class JsonPointer(object):
     def walk(self, doc, part):
         """ Walks one step in doc and returns the referenced part """
 
-        # Its not clear if a location "1" should be considered as 1 or "1"
-        # We prefer the integer-variant if possible
-        part_variants = self._try_parse(part) + [part]
-
-        for variant in part_variants:
+        if isinstance(doc, dict):
             try:
-                return doc[variant]
-            except:
-                continue
+                return doc[part]
 
-        raise JsonPointerException("'%s' not found in %s" % (part, doc))
+            except KeyError:
+                raise JsonPointerException("member '%s' not found in %s" % (part, doc))
+
+        elif isinstance(doc, list):
+
+            if part == '-':
+                return EndOfList(doc)
+
+            try:
+                part = int(part)
+            except ValueError:
+                raise JsonPointerException("'%s' is not a valid list index" % (part, ))
+
+            try:
+                return doc[part]
+
+            except IndexError:
+                raise JsonPointerException("index '%s' is out of bounds" % (part, ))
 
 
-    @staticmethod
-    def _try_parse(val, cls=int):
-        try:
-            return [cls(val)]
-        except:
-            return []
+        else:
+            raise JsonPointerException("can not go beyond '%s' (type '%s')" % (part, doc.__class__))
 
 
 
