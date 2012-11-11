@@ -1,6 +1,10 @@
+python-json-pointer
+===================
 
-python-json-pointer: Resolve JSON Pointers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Resolve JSON Pointers in Python
+-------------------------------
+
+[![Build Status](https://secure.travis-ci.org/stefankoegl/python-json-pointer.png?branch=master)](https://travis-ci.org/stefankoegl/python-json-pointer)
 
 Library to resolve JSON Pointers according to
 http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-04
