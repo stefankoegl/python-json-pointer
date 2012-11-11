@@ -112,14 +112,14 @@ def set_pointer(doc, pointer, value):
     >>> pointer = JsonPointer('/bar')
     >>> pointer.set(obj, 'one', '0')
     >>> pointer.set(obj, 'two', '1')
-    >>> obj
-    {'foo': 2, 'bar': ['one', 'two']}
+    >>> obj == {'foo': 2, 'bar': ['one', 'two']}
+    True
 
     >>> obj = {"foo": 2, "bar": []}
     >>> pointer = JsonPointer('/bar')
     >>> pointer.set(obj, 5, '0/x')
-    >>> obj
-    {'foo': 2, 'bar': [{'x': 5}]}
+    >>> obj == {'foo': 2, 'bar': [{'x': 5}]}
+    True
 
     >>> obj = {'foo': 2, 'bar': [{'x': 5}]}
     >>> pointer = JsonPointer('/bar/0')
