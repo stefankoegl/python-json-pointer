@@ -58,7 +58,7 @@ for module in modules:
     coverage_modules.append(m)
     suite.addTest(doctest.DocTestSuite(m))
 
-runner = unittest.TextTestRunner(verbosity=2)
+runner = unittest.TextTestRunner(verbosity=1)
 
 try:
     import coverage
