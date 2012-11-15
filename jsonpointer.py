@@ -146,6 +146,14 @@ class JsonPointer(object):
         self.parts = parts
 
 
+    def to_last(self, doc, default=_nothing):
+        """ Resolves ptr until the last step, returns (sub-doc, last-step) """
+
+        for part in self.parts[:-1]:
+            doc = self.walk(doc, part)
+
+        return doc, self.get_part(doc, self.parts[-1])
+
 
     def resolve(self, doc, default=_nothing):
         """Resolves the pointer against doc and returns the referenced object"""
@@ -208,8 +216,30 @@ class JsonPointer(object):
         return doc[part]
 
 
+    def get_part(self, doc, part):
+        """ Returns the next step in the correct type """
+
+        if isinstance(doc, dict):
+            return part
+
+        elif isinstance(doc, list):
+
+            if part == '-':
+                return part
+
+            try:
+                return int(part)
+            except ValueError:
+                raise JsonPointerException("'%s' is not a valid list index" % (part, ))
+
+        else:
+            raise JsonPointerException("Unknown document type '%s'" % (doc.__class__,))
+
+
     def walk(self, doc, part):
         """ Walks one step in doc and returns the referenced part """
+
+        part = self.get_part(doc, part)
 
         if isinstance(doc, dict):
             try:
@@ -222,11 +252,6 @@ class JsonPointer(object):
 
             if part == '-':
                 return EndOfList(doc)
-
-            try:
-                part = int(part)
-            except ValueError:
-                raise JsonPointerException("'%s' is not a valid list index" % (part, ))
 
             try:
                 return doc[part]
