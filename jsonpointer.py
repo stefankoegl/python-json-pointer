@@ -49,6 +49,11 @@ except ImportError: # Python 3
     izip = zip
 
 from itertools import tee
+import re
+
+
+# array indices must not contain signs, spaces, decimal parts, etc
+RE_ARRAY_INDEX=re.compile('^[0-9]+$')
 
 
 class JsonPointerException(Exception):
@@ -227,10 +232,10 @@ class JsonPointer(object):
             if part == '-':
                 return part
 
-            try:
-                return int(part)
-            except ValueError:
+            if not RE_ARRAY_INDEX.match(part):
                 raise JsonPointerException("'%s' is not a valid list index" % (part, ))
+
+            return int(part)
 
         else:
             raise JsonPointerException("Unknown document type '%s'" % (doc.__class__,))
