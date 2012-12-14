@@ -122,6 +122,9 @@ class JsonPointer(object):
     def to_last(self, doc, default=_nothing):
         """ Resolves ptr until the last step, returns (sub-doc, last-step) """
 
+        if not self.parts:
+            return doc, None
+
         for part in self.parts[:-1]:
             doc = self.walk(doc, part)
 
@@ -158,7 +161,7 @@ class JsonPointer(object):
             if part == '-':
                 return part
 
-            if not RE_ARRAY_INDEX.match(part):
+            if not RE_ARRAY_INDEX.match(str(part)):
                 raise JsonPointerException("'%s' is not a valid list index" % (part, ))
 
             return int(part)
