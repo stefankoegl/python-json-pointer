@@ -5,7 +5,7 @@ Resolve JSON Pointers in Python
 -------------------------------
 
 Library to resolve JSON Pointers according to
-http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-04
+http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-08
 
 See Sourcecode for Examples
 * Website: https://github.com/stefankoegl/python-json-pointer

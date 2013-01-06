@@ -4,7 +4,8 @@
 import doctest
 import unittest
 import sys
-from jsonpointer import resolve_pointer, EndOfList, JsonPointerException
+from jsonpointer import resolve_pointer, EndOfList, JsonPointerException, \
+         JsonPointer
 
 class SpecificationTests(unittest.TestCase):
     """ Tests all examples from the JSON Pointer specification """
@@ -46,12 +47,30 @@ class SpecificationTests(unittest.TestCase):
         self.assertRaises(JsonPointerException, resolve_pointer, doc, "/foo/-/1")
 
 
+class ComparisonTests(unittest.TestCase):
+
+   def test_eq_hash(self):
+        p1 = JsonPointer("/something/1/b")
+        p2 = JsonPointer("/something/1/b")
+        p3 = JsonPointer("/something/1.0/b")
+
+        self.assertEqual(p1, p2)
+        self.assertNotEqual(p1, p3)
+        self.assertNotEqual(p2, p3)
+
+        self.assertEqual(hash(p1), hash(p2))
+        self.assertNotEqual(hash(p1), hash(p3))
+        self.assertNotEqual(hash(p2), hash(p3))
+
+
+
 
 modules = ['jsonpointer']
 coverage_modules = []
 
 suite = unittest.TestSuite()
 suite.addTest(unittest.makeSuite(SpecificationTests))
+suite.addTest(unittest.makeSuite(ComparisonTests))
 
 for module in modules:
     m = __import__(module, fromlist=[module])

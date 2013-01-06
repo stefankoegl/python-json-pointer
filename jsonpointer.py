@@ -30,9 +30,9 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-""" Identify specific nodes in a JSON document (according to draft 07) """
+""" Identify specific nodes in a JSON document (according to draft 08) """
 
-# http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-07
+# http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-08
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
@@ -203,6 +203,23 @@ class JsonPointer(object):
         """" Returns True if self contains the given ptr """
         return len(self.parts) > len(ptr.parts) and \
              self.parts[:len(ptr.parts)] == ptr.parts
+
+
+    def __eq__(self, other):
+        """ compares a pointer to another object
+
+        Pointers can be compared by comparing their strings (or splitted
+        strings), because no two different parts can point to the same
+        structure in an object (eg no different number representations) """
+
+        if not isinstance(other, JsonPointer):
+            return False
+
+        return self.parts == other.parts
+
+
+    def __hash__(self):
+        return hash(tuple(self.parts))
 
 
 def pairwise(iterable):
