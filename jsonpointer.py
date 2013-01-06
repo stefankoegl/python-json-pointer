@@ -52,8 +52,8 @@ from itertools import tee
 import re
 
 
-# array indices must not contain signs, spaces, decimal parts, etc
-RE_ARRAY_INDEX=re.compile('^[0-9]+$')
+# array indices must not contain leading zeros, signs, spaces, decimals, etc
+RE_ARRAY_INDEX=re.compile('0|[1-9][0-9]*$')
 
 
 class JsonPointerException(Exception):
