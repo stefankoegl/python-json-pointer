@@ -30,9 +30,7 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-""" Identify specific nodes in a JSON document (according to draft 08) """
-
-# http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-08
+""" Identify specific nodes in a JSON document (RFC 6901) """
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
