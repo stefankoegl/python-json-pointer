@@ -1,3 +1,6 @@
 *.pyc
 build
 .coverage
+MANIFEST
+dist
+*.swp
