@@ -33,10 +33,10 @@
 """ Identify specific nodes in a JSON document (RFC 6901) """
 
 # Will be parsed by setup.py to determine package metadata
-__author__ = 'Stefan Kögl <stefan@skoegl.net>'
-__version__ = '1.0'
-__website__ = 'https://github.com/stefankoegl/python-json-pointer'
-__license__ = 'Modified BSD License'
+__author__ = u'Stefan Kögl <stefan@skoegl.net>'
+__version__ = u'1.0'
+__website__ = u'https://github.com/stefankoegl/python-json-pointer'
+__license__ = u'Modified BSD License'
 
 
 try:
