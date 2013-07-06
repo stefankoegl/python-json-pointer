@@ -223,7 +223,17 @@ class JsonPointer(object):
 
 
 def pairwise(iterable):
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    """ s -> (s0,s1), (s1,s2), (s2, s3), ...
+
+    >>> list(pairwise([]))
+    []
+
+    >>> list(pairwise([1]))
+    []
+
+    >>> list(pairwise([1, 2, 3, 4]))
+    [(1, 2), (2, 3), (3, 4)]
+    """
     a, b = tee(iterable)
     for _ in b:
         break
