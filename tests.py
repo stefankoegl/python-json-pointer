@@ -62,6 +62,9 @@ class ComparisonTests(unittest.TestCase):
         self.assertNotEqual(hash(p1), hash(p3))
         self.assertNotEqual(hash(p2), hash(p3))
 
+        # a pointer compares not-equal to objects of other types
+        self.assertFalse(p1 == "/something/1/b")
+
 suite = unittest.TestSuite()
 suite.addTest(unittest.makeSuite(SpecificationTests))
 suite.addTest(unittest.makeSuite(ComparisonTests))
