@@ -5,7 +5,12 @@ python:
   - "3.2"
   - "3.3"
   - "pypy"
-# command to install dependencies
-install: pip install
-# command to run tests
-script: nosetests tests.py
+
+install:
+  - pip install coveralls --use-mirrors
+
+script:
+  - coverage run --source=jsonpointer tests.py
+
+after_script:
+  - coveralls
