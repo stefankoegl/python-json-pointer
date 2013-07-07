@@ -1,4 +1,4 @@
-python-json-pointer [![Build Status](https://secure.travis-ci.org/stefankoegl/python-json-pointer.png?branch=master)](https://travis-ci.org/stefankoegl/python-json-pointer)
+python-json-pointer [![Build Status](https://secure.travis-ci.org/stefankoegl/python-json-pointer.png?branch=master)](https://travis-ci.org/stefankoegl/python-json-pointer) [![Coverage Status](https://coveralls.io/repos/stefankoegl/python-json-pointer/badge.png?branch=master)](https://coveralls.io/r/stefankoegl/python-json-pointer?branch=master)
 ===================
 
 Resolve JSON Pointers in Python
