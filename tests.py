@@ -69,9 +69,14 @@ class ComparisonTests(unittest.TestCase):
 class WrongInputTests(unittest.TestCase):
 
     def test_no_start_slash(self):
-
         # an exception is raised when the pointer string does not start with /
         self.assertRaises(JsonPointerException, JsonPointer, 'some/thing')
+
+    def test_invalid_index(self):
+        # 'a' is not a valid list index
+        doc = [0, 1, 2]
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, '/a')
+
 
 
 suite = unittest.TestSuite()
