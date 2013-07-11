@@ -86,6 +86,10 @@ class WrongInputTests(unittest.TestCase):
         doc = [0, 1, 2]
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/a')
 
+    def test_oob(self):
+        # this list does not have 10 members
+        doc = [0, 1, 2]
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, '/10')
 
 
 suite = unittest.TestSuite()
