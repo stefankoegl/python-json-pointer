@@ -49,7 +49,7 @@ class SpecificationTests(unittest.TestCase):
 
 class ComparisonTests(unittest.TestCase):
 
-   def test_eq_hash(self):
+    def test_eq_hash(self):
         p1 = JsonPointer("/something/1/b")
         p2 = JsonPointer("/something/1/b")
         p3 = JsonPointer("/something/1.0/b")
@@ -64,6 +64,15 @@ class ComparisonTests(unittest.TestCase):
 
         # a pointer compares not-equal to objects of other types
         self.assertFalse(p1 == "/something/1/b")
+
+    def test_contains(self):
+        p1 = JsonPointer("/a/b/c")
+        p2 = JsonPointer("/a/b")
+        p3 = JsonPointer("/b/c")
+
+        self.assertTrue(p1.contains(p2))
+        self.assertFalse(p1.contains(p3))
+
 
 
 class WrongInputTests(unittest.TestCase):
