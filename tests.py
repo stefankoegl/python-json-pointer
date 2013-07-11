@@ -65,9 +65,19 @@ class ComparisonTests(unittest.TestCase):
         # a pointer compares not-equal to objects of other types
         self.assertFalse(p1 == "/something/1/b")
 
+
+class WrongInputTests(unittest.TestCase):
+
+    def test_no_start_slash(self):
+
+        # an exception is raised when the pointer string does not start with /
+        self.assertRaises(JsonPointerException, JsonPointer, 'some/thing')
+
+
 suite = unittest.TestSuite()
 suite.addTest(unittest.makeSuite(SpecificationTests))
 suite.addTest(unittest.makeSuite(ComparisonTests))
+suite.addTest(unittest.makeSuite(WrongInputTests))
 
 modules = ['jsonpointer']
 
