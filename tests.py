@@ -92,10 +92,29 @@ class WrongInputTests(unittest.TestCase):
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/10')
 
 
+class ToLastTests(unittest.TestCase):
+
+    def test_empty_path(self):
+        doc = {'a': [1, 2, 3]}
+        ptr = JsonPointer('')
+        last, nxt = ptr.to_last(doc)
+        self.assertEqual(doc, last)
+        self.assertTrue(nxt is None)
+
+
+    def test_path(self):
+        doc = {'a': [{'b': 1, 'c': 2}, 5]}
+        ptr = JsonPointer('/a/0/b')
+        last, nxt = ptr.to_last(doc)
+        self.assertEqual(last, {'b': 1, 'c': 2})
+        self.assertEqual(nxt, 'b')
+
+
 suite = unittest.TestSuite()
 suite.addTest(unittest.makeSuite(SpecificationTests))
 suite.addTest(unittest.makeSuite(ComparisonTests))
 suite.addTest(unittest.makeSuite(WrongInputTests))
+suite.addTest(unittest.makeSuite(ToLastTests))
 
 modules = ['jsonpointer']
 
