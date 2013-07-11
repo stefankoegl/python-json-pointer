@@ -175,6 +175,10 @@ class JsonPointer(object):
 
         part = self.get_part(doc, part)
 
+        # type is already checked in get_part, so we assert here
+        # for consistency
+        assert type(doc) in (dict, list), "invalid document type %s" (type(doc),)
+
         if isinstance(doc, dict):
             try:
                 return doc[part]
@@ -192,11 +196,6 @@ class JsonPointer(object):
 
             except IndexError:
                 raise JsonPointerException("index '%s' is out of bounds" % (part, ))
-
-
-        else:
-            raise JsonPointerException("can not go beyond '%s' (type '%s')" % (part, doc.__class__))
-
 
 
     def contains(self, ptr):
