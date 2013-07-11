@@ -119,7 +119,7 @@ class JsonPointer(object):
         self.parts = parts
 
 
-    def to_last(self, doc, default=_nothing):
+    def to_last(self, doc):
         """ Resolves ptr until the last step, returns (sub-doc, last-step) """
 
         if not self.parts:
