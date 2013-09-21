@@ -50,6 +50,7 @@ except ImportError: # Python 3
 
 from itertools import tee
 import re
+import copy
 
 
 # array indices must not contain leading zeros, signs, spaces, decimals, etc
@@ -104,6 +105,28 @@ def resolve_pointer(doc, pointer, default=_nothing):
     pointer = JsonPointer(pointer)
     return pointer.resolve(doc, default)
 
+def set_pointer(doc, pointer, value, inplace=True):
+    """
+    Resolves pointer against doc and sets the value of the target within doc.
+
+    With inplace set to true, doc is modified as long as pointer is not the
+    root.
+
+    >>> obj = {"foo": {"anArray": [ {"prop": 44}], "another prop": {"baz": "A string" }}}
+
+    >>> set_pointer(obj, '/foo/anArray/0/prop', 55) == \
+    {'foo': {'another prop': {'baz': 'A string'}, 'anArray': [{'prop': 55}]}}
+    True
+
+    >>> set_pointer(obj, '/foo/yet%20another%20prop', 'added prop') == \
+    {'foo': {'another prop': {'baz': 'A string'}, 'yet another prop': 'added prop', 'anArray': [{'prop': 55}]}}
+    True
+
+    """
+
+    pointer = JsonPointer(pointer)
+    return pointer.set(doc, value, inplace)
+
 
 class JsonPointer(object):
     """ A JSON Pointer that can reference parts of an JSON document """
@@ -149,6 +172,21 @@ class JsonPointer(object):
 
     get = resolve
 
+    def set(self, doc, value, inplace=True):
+        """ Resolve the pointer against the doc and replace the target with value. """
+
+        if len(self.parts) == 0:
+            if inplace:
+                raise JsonPointerException('cannot set root in place')
+            return value
+
+        if not inplace:
+            doc = copy.deepcopy(doc)
+
+        (parent, part) = self.to_last(doc)
+
+        parent[part] = value
+        return doc
 
     def get_part(self, doc, part):
         """ Returns the next step in the correct type """
@@ -166,8 +204,13 @@ class JsonPointer(object):
 
             return int(part)
 
+        elif hasattr(doc, '__getitem__'):
+            # Allow indexing via ducktyping if the target has defined __getitem__
+            return part
+
         else:
-            raise JsonPointerException("Unknown document type '%s'" % (doc.__class__,))
+            raise JsonPointerException("Document '%s' does not support indexing, "
+                                       "must be dict/list or support __getitem__" % type(doc))
 
 
     def walk(self, doc, part):
@@ -175,9 +218,7 @@ class JsonPointer(object):
 
         part = self.get_part(doc, part)
 
-        # type is already checked in get_part, so we assert here
-        # for consistency
-        assert type(doc) in (dict, list), "invalid document type %s" (type(doc),)
+        assert (type(doc) in (dict, list) or hasattr(doc, '__getitem__')), "invalid document type %s" (type(doc))
 
         if isinstance(doc, dict):
             try:
@@ -197,9 +238,12 @@ class JsonPointer(object):
             except IndexError:
                 raise JsonPointerException("index '%s' is out of bounds" % (part, ))
 
+        else:
+            # Object supports __getitem__, assume custom indexing
+            return doc[part]
 
     def contains(self, ptr):
-        """" Returns True if self contains the given ptr """
+        """ Returns True if self contains the given ptr """
         return len(self.parts) > len(ptr.parts) and \
              self.parts[:len(ptr.parts)] == ptr.parts
 

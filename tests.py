@@ -4,8 +4,9 @@
 import doctest
 import unittest
 import sys
+import copy
 from jsonpointer import resolve_pointer, EndOfList, JsonPointerException, \
-         JsonPointer
+         JsonPointer, set_pointer
 
 class SpecificationTests(unittest.TestCase):
     """ Tests all examples from the JSON Pointer specification """
@@ -110,11 +111,118 @@ class ToLastTests(unittest.TestCase):
         self.assertEqual(nxt, 'b')
 
 
+class SetTests(unittest.TestCase):
+
+    def test_set(self):
+        doc =   {
+            "foo": ["bar", "baz"],
+            "": 0,
+            "a/b": 1,
+            "c%d": 2,
+            "e^f": 3,
+            "g|h": 4,
+            "i\\j": 5,
+            "k\"l": 6,
+            " ": 7,
+            "m~n": 8
+        }
+        origdoc = copy.deepcopy(doc)
+
+        # inplace=False
+        newdoc = set_pointer(doc, "/foo/1", "cod", inplace=False)
+        self.assertEqual(resolve_pointer(newdoc, "/foo/1"), "cod")
+
+        newdoc = set_pointer(doc, "/", 9, inplace=False)
+        self.assertEqual(resolve_pointer(newdoc, "/"), 9)
+
+        newdoc = set_pointer(doc, "/fud", {}, inplace=False)
+        newdoc = set_pointer(newdoc, "/fud/gaw", [1, 2, 3], inplace=False)
+        self.assertEqual(resolve_pointer(newdoc, "/fud"), {'gaw' : [1, 2, 3]})
+
+        newdoc = set_pointer(doc, "", 9, inplace=False)
+        self.assertEqual(newdoc, 9)
+
+        self.assertEqual(doc, origdoc)
+
+        # inplace=True
+        set_pointer(doc, "/foo/1", "cod")
+        self.assertEqual(resolve_pointer(doc, "/foo/1"), "cod")
+
+        set_pointer(doc, "/", 9)
+        self.assertEqual(resolve_pointer(doc, "/"), 9)
+
+        self.assertRaises(JsonPointerException, set_pointer, doc, "/fud/gaw", 9)
+
+        set_pointer(doc, "/fud", {})
+        set_pointer(doc, "/fud/gaw", [1, 2, 3] )
+        self.assertEqual(resolve_pointer(doc, "/fud"), {'gaw' : [1, 2, 3]})
+
+        self.assertRaises(JsonPointerException, set_pointer, doc, "", 9)
+
+class AltTypesTests(unittest.TestCase):
+
+    def test_alttypes(self):
+        JsonPointer.alttypes = True
+
+        class Node(object):
+            def __init__(self, name, parent=None):
+                self.name = name
+                self.parent = parent
+                self.left = None
+                self.right = None
+
+            def set_left(self, node):
+                node.parent = self
+                self.left = node
+
+            def set_right(self, node):
+                node.parent = self
+                self.right = node
+
+            def __getitem__(self, key):
+                if key == 'left':
+                    return self.left
+                if key == 'right':
+                    return self.right
+
+                raise KeyError("Only left and right supported")
+
+            def __setitem__(self, key, val):
+                if key == 'left':
+                    return self.set_left(val)
+                if key == 'right':
+                    return self.set_right(val)
+
+                raise KeyError("Only left and right supported: %s" % key)
+
+
+        root = Node('root')
+        root.set_left(Node('a'))
+        root.left.set_left(Node('aa'))
+        root.left.set_right(Node('ab'))
+        root.set_right(Node('b'))
+        root.right.set_left(Node('ba'))
+        root.right.set_right(Node('bb'))
+
+        self.assertEqual(resolve_pointer(root, '/left').name, 'a')
+        self.assertEqual(resolve_pointer(root, '/left/right').name, 'ab')
+        self.assertEqual(resolve_pointer(root, '/right').name, 'b')
+        self.assertEqual(resolve_pointer(root, '/right/left').name, 'ba')
+
+        newroot = set_pointer(root, '/left/right', Node('AB'), inplace=False)
+        self.assertEqual(resolve_pointer(root, '/left/right').name, 'ab')
+        self.assertEqual(resolve_pointer(newroot, '/left/right').name, 'AB')
+
+        set_pointer(root, '/left/right', Node('AB'))
+        self.assertEqual(resolve_pointer(root, '/left/right').name, 'AB')
+
 suite = unittest.TestSuite()
 suite.addTest(unittest.makeSuite(SpecificationTests))
 suite.addTest(unittest.makeSuite(ComparisonTests))
 suite.addTest(unittest.makeSuite(WrongInputTests))
 suite.addTest(unittest.makeSuite(ToLastTests))
+suite.addTest(unittest.makeSuite(SetTests))
+suite.addTest(unittest.makeSuite(AltTypesTests))
 
 modules = ['jsonpointer']
 
