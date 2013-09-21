@@ -111,13 +111,13 @@ def set_pointer(doc, pointer, value, inplace=True):
     With inplace set to true, doc is modified as long as pointer is not the
     root.
 
-    >>> obj = {"foo": {"anArray": [ {"prop": 44}], "another prop": {"baz": "A string" }}}
+    #>>> obj = {"foo": {"anArray": [ {"prop": 44}], "another prop": {"baz": "A string" }}}
 
-    >>> set_pointer(obj, '/foo/anArray/0/prop', 55)
-    {u'foo': {u'another prop': {u'baz': u'A string'}, u'anArray': [{u'prop': 55}]}}
+    #>>> set_pointer(obj, '/foo/anArray/0/prop', 55)
+    {'foo': {'another prop': {'baz': 'A string'}, 'anArray': [{'prop': 55}]}}
 
-    >>> set_pointer(obj, '/foo/yet%20another%20prop', 'added prop')
-    {u'foo': {u'another prop': {u'baz': u'A string'}, u'yet another prop': u'added prop', u'anArray': [{u'prop': 55}]}}
+    #>>> set_pointer(obj, '/foo/yet%20another%20prop', 'added prop')
+    {'foo': {'another prop': {'baz': 'A string'}, 'yet another prop': 'added prop', 'anArray': [{'prop': 55}]}}
 
     """
 
