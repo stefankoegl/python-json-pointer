@@ -111,14 +111,16 @@ def set_pointer(doc, pointer, value, inplace=True):
     With inplace set to true, doc is modified as long as pointer is not the
     root.
 
-    #>>> obj = {"foo": {"anArray": [ {"prop": 44}], "another prop": {"baz": "A string" }}}
+    >>> obj = {"foo": {"anArray": [ {"prop": 44}], "another prop": {"baz": "A string" }}}
 
-    #>>> set_pointer(obj, '/foo/anArray/0/prop', 55)
+    >>> set_pointer(obj, '/foo/anArray/0/prop', 55) == \
     {'foo': {'another prop': {'baz': 'A string'}, 'anArray': [{'prop': 55}]}}
+    True
 
-    #>>> set_pointer(obj, '/foo/yet%20another%20prop', 'added prop')
+    >>> set_pointer(obj, '/foo/yet%20another%20prop', 'added prop') == \
     {'foo': {'another prop': {'baz': 'A string'}, 'yet another prop': 'added prop', 'anArray': [{'prop': 55}]}}
-
+    True
+    
     """
 
     pointer = JsonPointer(pointer)
