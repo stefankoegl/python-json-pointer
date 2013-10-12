@@ -20,14 +20,23 @@ The program has the following usage ::
       -v, --version    show program's version number and exit
 
 
-The following shows example usage ::
+Example
+^^^^^^^
 
+.. code-block:: bash
+
+    # inspect JSON files
     $ cat a.json
     { "a": [1, 2, 3] }
+
     $ cat b.json
     { "a": {"b": [1, 3, 4]}, "b": 1 }
+
+    # inspect JSON pointer
     $ cat ptr.json
     "/a"
+
+    # resolve JSON pointer
     $ jsonpointer ptr.json a.json b.json
     [1, 2, 3]
     {"b": [1, 3, 4]}
