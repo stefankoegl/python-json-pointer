@@ -33,4 +33,9 @@ setup(name=PACKAGE,
       license=LICENSE,
       url=WEBSITE,
       py_modules=MODULES,
+      scripts=['bin/jsonpointer'],
+      entry_poimts = {
+        'console_scripts': [
+            'jsonpointer = jsonpointer:main',
+      ]},
 )

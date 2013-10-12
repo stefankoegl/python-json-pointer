@@ -17,6 +17,7 @@ and PyPy are supported.
 
    tutorial
    mod-jsonpointer
+   commandline
    RFC 6901 <http://tools.ietf.org/html/rfc6901>
 
 
