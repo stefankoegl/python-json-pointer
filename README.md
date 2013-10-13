@@ -11,3 +11,6 @@ See Sourcecode for Examples
 * Website: https://github.com/stefankoegl/python-json-pointer
 * Repository: https://github.com/stefankoegl/python-json-pointer.git
 * Documentation: https://python-json-pointer.readthedocs.org/
+* PyPI: https://pypi.python.org/pypi/jsonpointer
+* Travis-CI: https://travis-ci.org/stefankoegl/python-json-pointer
+* Coveralls: https://coveralls.io/r/stefankoegl/python-json-pointer
