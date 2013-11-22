@@ -218,7 +218,7 @@ class JsonPointer(object):
 
         part = self.get_part(doc, part)
 
-        assert (type(doc) in (dict, list) or hasattr(doc, '__getitem__')), "invalid document type %s" (type(doc))
+        assert (type(doc) in (dict, list) or hasattr(doc, '__getitem__')), "invalid document type %s" % (type(doc),)
 
         if isinstance(doc, dict):
             try:
