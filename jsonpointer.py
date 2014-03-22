@@ -247,6 +247,17 @@ class JsonPointer(object):
         return len(self.parts) > len(ptr.parts) and \
              self.parts[:len(ptr.parts)] == ptr.parts
 
+    @property
+    def path(self):
+        """ Returns the string representation of the pointer
+
+        >>> ptr = JsonPointer('/~0/0/~1')
+        >>> ptr.path
+        u'/~0/0/~1'
+        """
+        parts = [part.replace('~', '~0') for part in self.parts]
+        parts = [part.replace('/', '~1') for part in parts]
+        return '/' + '/'.join(parts)
 
     def __eq__(self, other):
         """ compares a pointer to another object
@@ -263,6 +274,20 @@ class JsonPointer(object):
 
     def __hash__(self):
         return hash(tuple(self.parts))
+
+    @classmethod
+    def from_parts(cls, parts):
+        """ Constructs a JsonPointer from a list of (unescaped) paths
+
+        >>> JsonPointer.from_parts(['a', '~', '/', 0]).path
+        u'/a/~0/~1/0'
+        """
+        parts = [str(part) for part in parts]
+        parts = [part.replace('~', '~0') for part in parts]
+        parts = [part.replace('/', '~1') for part in parts]
+        ptr = cls('/' + '/'.join(parts))
+        return ptr
+
 
 
 def pairwise(iterable):
