@@ -251,9 +251,7 @@ class JsonPointer(object):
     def path(self):
         """ Returns the string representation of the pointer
 
-        >>> ptr = JsonPointer('/~0/0/~1')
-        >>> ptr.path
-        u'/~0/0/~1'
+        >>> ptr = JsonPointer('/~0/0/~1').path == '/~0/0/~1'
         """
         parts = [part.replace('~', '~0') for part in self.parts]
         parts = [part.replace('/', '~1') for part in parts]
@@ -279,8 +277,8 @@ class JsonPointer(object):
     def from_parts(cls, parts):
         """ Constructs a JsonPointer from a list of (unescaped) paths
 
-        >>> JsonPointer.from_parts(['a', '~', '/', 0]).path
-        u'/a/~0/~1/0'
+        >>> JsonPointer.from_parts(['a', '~', '/', 0]).path == '/a/~0/~1/0'
+        True
         """
         parts = [str(part) for part in parts]
         parts = [part.replace('~', '~0') for part in parts]
