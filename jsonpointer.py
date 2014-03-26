@@ -255,7 +255,7 @@ class JsonPointer(object):
         """
         parts = [part.replace('~', '~0') for part in self.parts]
         parts = [part.replace('/', '~1') for part in parts]
-        return '/' + '/'.join(parts)
+        return ''.join('/' + part for part in parts)
 
     def __eq__(self, other):
         """ compares a pointer to another object
