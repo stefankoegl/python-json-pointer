@@ -283,7 +283,7 @@ class JsonPointer(object):
         parts = [str(part) for part in parts]
         parts = [part.replace('~', '~0') for part in parts]
         parts = [part.replace('/', '~1') for part in parts]
-        ptr = cls('/' + '/'.join(parts))
+        ptr = cls(''.join('/' + part for part in parts))
         return ptr
 
 
