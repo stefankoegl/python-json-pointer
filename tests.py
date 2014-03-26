@@ -47,6 +47,28 @@ class SpecificationTests(unittest.TestCase):
         self.assertTrue(isinstance(resolve_pointer(doc, "/foo/-"), EndOfList))
         self.assertRaises(JsonPointerException, resolve_pointer, doc, "/foo/-/1")
 
+    def test_round_trip(self):
+        paths = [
+            "",
+            "/foo",
+            "/foo/0",
+            "/",
+            "/a~1b",
+            "/c%d",
+            "/e^f",
+            "/g|h",
+            "/i\\j",
+            "/k\"l",
+            "/ ",
+            "/m~0n",
+        ]
+        for path in paths:
+            ptr = JsonPointer(path)
+            self.assertEqual(path, ptr.path)
+
+            parts = ptr.parts
+            new_ptr = JsonPointer.from_parts(parts)
+            self.assertEqual(ptr, new_ptr)
 
 class ComparisonTests(unittest.TestCase):
 
