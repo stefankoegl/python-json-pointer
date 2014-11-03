@@ -34,6 +34,11 @@ from __future__ import unicode_literals
 
 """ Identify specific nodes in a JSON document (RFC 6901) """
 
+try:
+    from collections.abc import Mapping, Sequence
+except ImportError:
+    from collections import Mapping, Sequence
+
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
 __version__ = '1.4'
@@ -191,10 +196,10 @@ class JsonPointer(object):
     def get_part(self, doc, part):
         """ Returns the next step in the correct type """
 
-        if isinstance(doc, dict):
+        if isinstance(doc, Mapping):
             return part
 
-        elif isinstance(doc, list):
+        elif isinstance(doc, Sequence):
 
             if part == '-':
                 return part
@@ -220,14 +225,14 @@ class JsonPointer(object):
 
         assert (type(doc) in (dict, list) or hasattr(doc, '__getitem__')), "invalid document type %s" % (type(doc),)
 
-        if isinstance(doc, dict):
+        if isinstance(doc, Mapping):
             try:
                 return doc[part]
 
             except KeyError:
                 raise JsonPointerException("member '%s' not found in %s" % (part, doc))
 
-        elif isinstance(doc, list):
+        elif isinstance(doc, Sequence):
 
             if part == '-':
                 return EndOfList(doc)
