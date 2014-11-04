@@ -1,18 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from collections import MutableMapping
 
 import doctest
 import unittest
 import sys
 import copy
 from jsonpointer import resolve_pointer, EndOfList, JsonPointerException, \
-         JsonPointer, set_pointer
+    JsonPointer, set_pointer
+
 
 class SpecificationTests(unittest.TestCase):
     """ Tests all examples from the JSON Pointer specification """
 
     def test_example(self):
-        doc =   {
+        doc = {
             "foo": ["bar", "baz"],
             "": 0,
             "a/b": 1,
@@ -37,7 +39,6 @@ class SpecificationTests(unittest.TestCase):
         self.assertEqual(resolve_pointer(doc, "/k\"l"), 6)
         self.assertEqual(resolve_pointer(doc, "/ "), 7)
         self.assertEqual(resolve_pointer(doc, "/m~0n"), 8)
-
 
     def test_eol(self):
         doc = {
@@ -70,8 +71,8 @@ class SpecificationTests(unittest.TestCase):
             new_ptr = JsonPointer.from_parts(parts)
             self.assertEqual(ptr, new_ptr)
 
-class ComparisonTests(unittest.TestCase):
 
+class ComparisonTests(unittest.TestCase):
     def test_eq_hash(self):
         p1 = JsonPointer("/something/1/b")
         p2 = JsonPointer("/something/1/b")
@@ -94,12 +95,11 @@ class ComparisonTests(unittest.TestCase):
         p3 = JsonPointer("/b/c")
 
         self.assertTrue(p1.contains(p2))
+        self.assertTrue(p1.contains(p1))
         self.assertFalse(p1.contains(p3))
 
 
-
 class WrongInputTests(unittest.TestCase):
-
     def test_no_start_slash(self):
         # an exception is raised when the pointer string does not start with /
         self.assertRaises(JsonPointerException, JsonPointer, 'some/thing')
@@ -116,7 +116,6 @@ class WrongInputTests(unittest.TestCase):
 
 
 class ToLastTests(unittest.TestCase):
-
     def test_empty_path(self):
         doc = {'a': [1, 2, 3]}
         ptr = JsonPointer('')
@@ -134,9 +133,9 @@ class ToLastTests(unittest.TestCase):
 
 
 class SetTests(unittest.TestCase):
-
     def test_set(self):
-        doc =   {
+        doc = {
+            "a": {"b": "c"},
             "foo": ["bar", "baz"],
             "": 0,
             "a/b": 1,
@@ -148,6 +147,8 @@ class SetTests(unittest.TestCase):
             " ": 7,
             "m~n": 8
         }
+        self.assertEqual(resolve_pointer(doc, "/a/b/d", None), None)
+
         origdoc = copy.deepcopy(doc)
 
         # inplace=False
@@ -159,7 +160,7 @@ class SetTests(unittest.TestCase):
 
         newdoc = set_pointer(doc, "/fud", {}, inplace=False)
         newdoc = set_pointer(newdoc, "/fud/gaw", [1, 2, 3], inplace=False)
-        self.assertEqual(resolve_pointer(newdoc, "/fud"), {'gaw' : [1, 2, 3]})
+        self.assertEqual(resolve_pointer(newdoc, "/fud"), {'gaw': [1, 2, 3]})
 
         newdoc = set_pointer(doc, "", 9, inplace=False)
         self.assertEqual(newdoc, 9)
@@ -176,13 +177,13 @@ class SetTests(unittest.TestCase):
         self.assertRaises(JsonPointerException, set_pointer, doc, "/fud/gaw", 9)
 
         set_pointer(doc, "/fud", {})
-        set_pointer(doc, "/fud/gaw", [1, 2, 3] )
-        self.assertEqual(resolve_pointer(doc, "/fud"), {'gaw' : [1, 2, 3]})
+        set_pointer(doc, "/fud/gaw", [1, 2, 3])
+        self.assertEqual(resolve_pointer(doc, "/fud"), {'gaw': [1, 2, 3]})
 
         self.assertRaises(JsonPointerException, set_pointer, doc, "", 9)
 
-class AltTypesTests(unittest.TestCase):
 
+class AltTypesTests(unittest.TestCase):
     def test_alttypes(self):
         JsonPointer.alttypes = True
 
@@ -237,6 +238,38 @@ class AltTypesTests(unittest.TestCase):
 
         set_pointer(root, '/left/right', Node('AB'))
         self.assertEqual(resolve_pointer(root, '/left/right').name, 'AB')
+
+    def test_basic_mapping(self):
+        default = None
+        class Foo(MutableMapping):
+            def __init__(self, d):
+                self.d = d
+            def __getitem__(self, item):
+                return self.d[item]
+            def __len__(self):
+                return len(self.d)
+            def __iter__(self):
+                return iter(self.d)
+            def __delitem__(self, item):
+                del self.d[item]
+            def __setitem__(self, key, value):
+                self.d[key] = value
+        doc = Foo({'root': {'1': {'2': '3'}}})
+
+        # TODO: Generate this automatically for any given object
+        path_to_expected_value = {
+            '/root/1': {'2': '3'},
+            '/root': {'1': {'2': '3'}},
+            '/root/1/2': '3',
+            '/foo': default,
+            '/x/y/z/d': default
+        }
+
+        for path, expected_value in iter(path_to_expected_value.items()):
+            self.assertEqual(resolve_pointer(doc, path, default), expected_value)
+
+
+
 
 suite = unittest.TestSuite()
 suite.addTest(unittest.makeSuite(SpecificationTests))
