@@ -8,6 +8,7 @@ import copy
 from jsonpointer import resolve_pointer, EndOfList, JsonPointerException, \
          JsonPointer, set_pointer
 
+
 class SpecificationTests(unittest.TestCase):
     """ Tests all examples from the JSON Pointer specification """
 
@@ -70,6 +71,7 @@ class SpecificationTests(unittest.TestCase):
             new_ptr = JsonPointer.from_parts(parts)
             self.assertEqual(ptr, new_ptr)
 
+
 class ComparisonTests(unittest.TestCase):
 
     def test_eq_hash(self):
@@ -94,8 +96,8 @@ class ComparisonTests(unittest.TestCase):
         p3 = JsonPointer("/b/c")
 
         self.assertTrue(p1.contains(p2))
+        self.assertTrue(p1.contains(p1))
         self.assertFalse(p1.contains(p3))
-
 
 
 class WrongInputTests(unittest.TestCase):
@@ -181,11 +183,11 @@ class SetTests(unittest.TestCase):
 
         self.assertRaises(JsonPointerException, set_pointer, doc, "", 9)
 
+
 class AltTypesTests(unittest.TestCase):
 
-    def test_alttypes(self):
-        JsonPointer.alttypes = True
-
+    @classmethod
+    def setUpClass(cls):
         class Node(object):
             def __init__(self, name, parent=None):
                 self.name = name
@@ -217,6 +219,18 @@ class AltTypesTests(unittest.TestCase):
 
                 raise KeyError("Only left and right supported: %s" % key)
 
+        class mdict(object):
+            def __init__(self, d):
+                self._d = d
+            def __getitem__(self, item):
+                return self._d[item]
+
+        cls.mdict = mdict({'root': {'1': {'2': '3'}}})
+        cls.Node = Node
+
+
+    def test_alttypes(self):
+        Node = self.Node
 
         root = Node('root')
         root.set_left(Node('a'))
@@ -237,6 +251,38 @@ class AltTypesTests(unittest.TestCase):
 
         set_pointer(root, '/left/right', Node('AB'))
         self.assertEqual(resolve_pointer(root, '/left/right').name, 'AB')
+
+    def test_mock_dict_sanity(self):
+        doc = self.mdict
+        default = None
+
+        # TODO: Generate this automatically for any given object
+        path_to_expected_value = {
+            '/root/1': {'2': '3'},
+            '/root': {'1': {'2': '3'}},
+            '/root/1/2': '3',
+        }
+
+        for path, expected_value in iter(path_to_expected_value.items()):
+            self.assertEqual(resolve_pointer(doc, path, default), expected_value)
+
+    def test_mock_dict_returns_default(self):
+        doc = self.mdict
+        default = None
+
+        path_to_expected_value = {
+            '/foo': default,
+            '/x/y/z/d': default
+        }
+
+        for path, expected_value in iter(path_to_expected_value.items()):
+            self.assertEqual(resolve_pointer(doc, path, default), expected_value)
+
+    def test_mock_dict_raises_key_error(self):
+        doc = self.mdict
+        self.assertRaises(KeyError, resolve_pointer, doc, '/foo')
+
+
 
 suite = unittest.TestSuite()
 suite.addTest(unittest.makeSuite(SpecificationTests))

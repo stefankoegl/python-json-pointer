@@ -166,7 +166,8 @@ class JsonPointer(object):
 
             try:
                 doc = self.walk(doc, part)
-            except JsonPointerException:
+            # Catching a broad exception to ensure the return of the default
+            except:
                 if default is _nothing:
                     raise
                 else:
@@ -215,7 +216,7 @@ class JsonPointer(object):
 
         else:
             raise JsonPointerException("Document '%s' does not support indexing, "
-                                       "must be dict/list or support __getitem__" % type(doc))
+                                       "must be mapping/sequence or support __getitem__" % type(doc))
 
 
     def walk(self, doc, part):
@@ -249,7 +250,7 @@ class JsonPointer(object):
 
     def contains(self, ptr):
         """ Returns True if self contains the given ptr """
-        return len(self.parts) > len(ptr.parts) and \
+        return len(self.parts) >= len(ptr.parts) and \
              self.parts[:len(ptr.parts)] == ptr.parts
 
     @property
