@@ -94,6 +94,7 @@ class ComparisonTests(unittest.TestCase):
         p3 = JsonPointer("/b/c")
 
         self.assertTrue(p1.contains(p2))
+        self.assertTrue(p1.contains(p1))
         self.assertFalse(p1.contains(p3))
 
 
