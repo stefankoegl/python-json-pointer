@@ -62,8 +62,7 @@ _nothing = object()
 
 
 def set_pointer(doc, pointer, value, inplace=True):
-    """
-    Resolves pointer against doc and sets the value of the target within doc.
+    """Resolves pointer against doc and sets the value of the target within doc.
 
     With inplace set to true, doc is modified as long as pointer is not the
     root.
@@ -77,7 +76,6 @@ def set_pointer(doc, pointer, value, inplace=True):
     >>> set_pointer(obj, '/foo/yet%20another%20prop', 'added prop') == \
     {'foo': {'another prop': {'baz': 'A string'}, 'yet another prop': 'added prop', 'anArray': [{'prop': 55}]}}
     True
-
     """
 
     pointer = JsonPointer(pointer)
@@ -85,8 +83,7 @@ def set_pointer(doc, pointer, value, inplace=True):
 
 
 def resolve_pointer(doc, pointer, default=_nothing):
-    """
-    Resolves pointer against doc and returns the referenced object
+    """Resolves pointer against doc and returns the referenced object
 
     >>> obj = {'foo': {'anArray': [ {'prop': 44}], 'another prop': {'baz': 'A string' }}}
 
@@ -107,7 +104,6 @@ def resolve_pointer(doc, pointer, default=_nothing):
 
     >>> resolve_pointer(obj, '/some/path', None) == None
     True
-
     """
 
     pointer = JsonPointer(pointer)
@@ -115,7 +111,8 @@ def resolve_pointer(doc, pointer, default=_nothing):
 
 
 def pairwise(iterable):
-    """
+    """ Transforms a list to a list of tuples of adjacent items
+
     s -> (s0,s1), (s1,s2), (s2, s3), ...
 
     >>> list(pairwise([]))
@@ -138,9 +135,7 @@ class JsonPointerException(Exception):
 
 
 class EndOfList(object):
-    """
-    Result of accessing element "-" of a list
-    """
+    """Result of accessing element "-" of a list"""
 
     def __init__(self, list_):
         self.list_ = list_
@@ -151,9 +146,8 @@ class EndOfList(object):
 
 
 class JsonPointer(object):
-    """
-    A JSON Pointer that can reference parts of an JSON document
-    """
+    """A JSON Pointer that can reference parts of an JSON document"""
+
     _GETITEM_SUPPORT_ERROR = """document '%s' does not support indexing,
                              must be mapping/sequence
                              or support __getitem__"""
@@ -173,9 +167,7 @@ class JsonPointer(object):
         self.parts = parts
 
     def to_last(self, doc):
-        """
-        Resolves ptr until the last step, returns (sub-doc, last-step)
-        """
+        """Resolves ptr until the last step, returns (sub-doc, last-step)"""
 
         if not self.parts:
             return doc, None
@@ -186,9 +178,7 @@ class JsonPointer(object):
         return doc, self.get_part(doc, self.parts[-1])
 
     def resolve(self, doc, default=_nothing):
-        """
-        Resolves the pointer against doc and returns the referenced object
-        """
+        """Resolves the pointer against doc and returns the referenced object"""
 
         for part in self.parts:
 
@@ -205,9 +195,7 @@ class JsonPointer(object):
     get = resolve
 
     def set(self, doc, value, inplace=True):
-        """
-        Resolve the pointer against the doc and replace the target with value.
-        """
+        """Resolve the pointer against the doc and replace the target with value."""
 
         if len(self.parts) == 0:
             if inplace:
@@ -223,9 +211,7 @@ class JsonPointer(object):
         return doc
 
     def get_part(self, doc, part):
-        """
-        Returns the next step in the correct type
-        """
+        """Returns the next step in the correct type"""
 
         if isinstance(doc, Mapping):
             return part
@@ -249,9 +235,7 @@ class JsonPointer(object):
             raise JsonPointerException(self._GETITEM_SUPPORT_ERROR % type(doc))
 
     def walk(self, doc, part):
-        """
-        Walks one step in doc and returns the referenced part
-        """
+        """Walks one step in doc and returns the referenced part"""
 
         part = self.get_part(doc, part)
 
@@ -281,16 +265,14 @@ class JsonPointer(object):
             return doc[part]
 
     def contains(self, ptr):
-        """
-        Returns True if self contains the given ptr
-        """
-        return len(self.parts) >= len(ptr.parts) and \
+        """Returns True if self contains the given ptr"""
+
+        return len(self.parts) > len(ptr.parts) and \
                self.parts[:len(ptr.parts)] == ptr.parts
 
     @property
     def path(self):
-        """
-        Returns the string representation of the pointer
+        """Returns the string representation of the pointer
 
         >>> ptr = JsonPointer('/~0/0/~1').path == '/~0/0/~1'
         """
@@ -299,8 +281,7 @@ class JsonPointer(object):
         return ''.join('/' + part for part in parts)
 
     def __eq__(self, other):
-        """
-        Compares a pointer to another object
+        """Compares a pointer to another object
 
         Pointers can be compared by comparing their strings (or splitted
         strings), because no two different parts can point to the same
@@ -317,8 +298,7 @@ class JsonPointer(object):
 
     @classmethod
     def from_parts(cls, parts):
-        """
-        Constructs a JsonPointer from a list of (unescaped) paths
+        """Constructs a JsonPointer from a list of (unescaped) paths
 
         >>> JsonPointer.from_parts(['a', '~', '/', 0]).path == '/a/~0/~1/0'
         True
