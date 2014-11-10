@@ -249,7 +249,7 @@ class JsonPointer(object):
 
     def contains(self, ptr):
         """ Returns True if self contains the given ptr """
-        return len(self.parts) > len(ptr.parts) and \
+        return len(self.parts) >= len(ptr.parts) and \
              self.parts[:len(ptr.parts)] == ptr.parts
 
     @property
