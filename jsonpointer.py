@@ -36,7 +36,7 @@ from __future__ import unicode_literals
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
-__version__ = '1.4'
+__version__ = '1.5'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
@@ -148,10 +148,6 @@ class EndOfList(object):
 class JsonPointer(object):
     """A JSON Pointer that can reference parts of an JSON document"""
 
-    _GETITEM_SUPPORT_ERROR = """document '%s' does not support indexing,
-                             must be mapping/sequence
-                             or support __getitem__"""
-
     # Array indices must not contain:
     # leading zeros, signs, spaces, decimals, etc
     _RE_ARRAY_INDEX = re.compile('0|[1-9][0-9]*$')
@@ -232,7 +228,8 @@ class JsonPointer(object):
             return part
 
         else:
-            raise JsonPointerException(self._GETITEM_SUPPORT_ERROR % type(doc))
+            raise JsonPointerException("document '%s' does not support indexing, "
+                                       "must be mapping/sequence or support __getitem__" % type(doc))
 
     def walk(self, doc, part):
         """Walks one step in doc and returns the referenced part"""
@@ -258,7 +255,7 @@ class JsonPointer(object):
                 return doc[part]
 
             except IndexError:
-                raise JsonPointerException("index '%s' is out of bounds" % part)
+                raise JsonPointerException("index '%s' is out of bounds" % (part, ))
 
         else:
             # Object supports __getitem__, assume custom indexing
