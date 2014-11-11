@@ -248,9 +248,12 @@ class JsonPointer(object):
             return doc[part]
 
     def contains(self, ptr):
-        """ Returns True if self contains the given ptr """
-        return len(self.parts) >= len(ptr.parts) and \
-             self.parts[:len(ptr.parts)] == ptr.parts
+        """Returns True if self contains the given ptr"""
+        return self.parts[:len(ptr.parts)] == ptr.parts
+
+    def __contains__(self, item):
+        """Returns True if self contains the given ptr"""
+        return self.contains(item)
 
     @property
     def path(self):
