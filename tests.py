@@ -72,6 +72,11 @@ class SpecificationTests(unittest.TestCase):
 
 class ComparisonTests(unittest.TestCase):
 
+    def setUp(self):
+        self.ptr1 = JsonPointer("/a/b/c")
+        self.ptr2 = JsonPointer("/a/b")
+        self.ptr3 = JsonPointer("/b/c")
+
     def test_eq_hash(self):
         p1 = JsonPointer("/something/1/b")
         p2 = JsonPointer("/something/1/b")
@@ -89,14 +94,16 @@ class ComparisonTests(unittest.TestCase):
         self.assertFalse(p1 == "/something/1/b")
 
     def test_contains(self):
-        p1 = JsonPointer("/a/b/c")
-        p2 = JsonPointer("/a/b")
-        p3 = JsonPointer("/b/c")
 
-        self.assertTrue(p1.contains(p2))
-        self.assertTrue(p1.contains(p1))
-        self.assertFalse(p1.contains(p3))
+        self.assertTrue(self.ptr1.contains(self.ptr2))
+        self.assertTrue(self.ptr1.contains(self.ptr1))
+        self.assertFalse(self.ptr1.contains(self.ptr3))
 
+    def test_contains_magic(self):
+
+        self.assertTrue(self.ptr2 in self.ptr1)
+        self.assertTrue(self.ptr1 in self.ptr1)
+        self.assertFalse(self.ptr3 in self.ptr1)
 
 
 class WrongInputTests(unittest.TestCase):
