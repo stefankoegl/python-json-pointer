@@ -225,15 +225,7 @@ class JsonPointer(object):
 
         assert (type(doc) in (dict, list) or hasattr(doc, '__getitem__')), "invalid document type %s" % (type(doc),)
 
-        if isinstance(doc, Mapping):
-            try:
-                return doc[part]
-
-            except KeyError:
-                raise JsonPointerException("member '%s' not found in %s" % (part, doc))
-
-        elif isinstance(doc, Sequence):
-
+        if isinstance(doc, Sequence):
             if part == '-':
                 return EndOfList(doc)
 
@@ -243,9 +235,13 @@ class JsonPointer(object):
             except IndexError:
                 raise JsonPointerException("index '%s' is out of bounds" % (part, ))
 
-        else:
-            # Object supports __getitem__, assume custom indexing
+        # Else the object is a mapping or supports __getitem__(so assume custom indexing)
+        try:
             return doc[part]
+
+        except KeyError:
+            raise JsonPointerException("member '%s' not found in %s" % (part, doc))
+
 
     def contains(self, ptr):
         """ Returns True if self contains the given ptr """

@@ -277,7 +277,8 @@ class AltTypesTests(unittest.TestCase):
 
     def test_mock_dict_raises_key_error(self):
         doc = self.mdict
-        self.assertRaises(KeyError, resolve_pointer, doc, '/foo')
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, '/foo')
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, '/root/1/2/3/4')
 
 
 
