@@ -166,8 +166,7 @@ class JsonPointer(object):
 
             try:
                 doc = self.walk(doc, part)
-            # Catching a broad exception to ensure the return of the default
-            except:
+            except JsonPointerException:
                 if default is _nothing:
                     raise
                 else:
@@ -250,7 +249,7 @@ class JsonPointer(object):
 
     def contains(self, ptr):
         """ Returns True if self contains the given ptr """
-        return len(self.parts) >= len(ptr.parts) and \
+        return len(self.parts) > len(ptr.parts) and \
              self.parts[:len(ptr.parts)] == ptr.parts
 
     @property
