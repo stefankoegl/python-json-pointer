@@ -185,47 +185,45 @@ class SetTests(unittest.TestCase):
 
 class AltTypesTests(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        class Node(object):
-            def __init__(self, name, parent=None):
-                self.name = name
-                self.parent = parent
-                self.left = None
-                self.right = None
+    class Node(object):
+        def __init__(self, name, parent=None):
+            self.name = name
+            self.parent = parent
+            self.left = None
+            self.right = None
 
-            def set_left(self, node):
-                node.parent = self
-                self.left = node
+        def set_left(self, node):
+            node.parent = self
+            self.left = node
 
-            def set_right(self, node):
-                node.parent = self
-                self.right = node
+        def set_right(self, node):
+            node.parent = self
+            self.right = node
 
-            def __getitem__(self, key):
-                if key == 'left':
-                    return self.left
-                if key == 'right':
-                    return self.right
+        def __getitem__(self, key):
+            if key == 'left':
+                return self.left
+            if key == 'right':
+                return self.right
 
-                raise KeyError("Only left and right supported")
+            raise KeyError("Only left and right supported")
 
-            def __setitem__(self, key, val):
-                if key == 'left':
-                    return self.set_left(val)
-                if key == 'right':
-                    return self.set_right(val)
+        def __setitem__(self, key, val):
+            if key == 'left':
+                return self.set_left(val)
+            if key == 'right':
+                return self.set_right(val)
 
-                raise KeyError("Only left and right supported: %s" % key)
+            raise KeyError("Only left and right supported: %s" % key)
 
-        class mdict(object):
-            def __init__(self, d):
-                self._d = d
-            def __getitem__(self, item):
-                return self._d[item]
+    class mdict(object):
+        def __init__(self, d):
+            self._d = d
+        def __getitem__(self, item):
+            return self._d[item]
 
-        cls.mdict = mdict({'root': {'1': {'2': '3'}}})
-        cls.Node = Node
+    mdict = mdict({'root': {'1': {'2': '3'}}})
+    Node = Node
 
 
     def test_alttypes(self):
