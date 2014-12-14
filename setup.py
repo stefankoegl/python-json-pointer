@@ -64,9 +64,5 @@ setup(name=PACKAGE,
       url=WEBSITE,
       py_modules=MODULES,
       scripts=['bin/jsonpointer'],
-      entry_points = {
-        'console_scripts': [
-            'jsonpointer = jsonpointer:main',
-      ]},
       classifiers=CLASSIFIERS,
 )
