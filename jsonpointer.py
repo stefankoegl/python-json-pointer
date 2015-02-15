@@ -196,7 +196,12 @@ class JsonPointer(object):
     def get_part(self, doc, part):
         """ Returns the next step in the correct type """
 
-        if isinstance(doc, Sequence):
+        # Optimize for common cases of doc being a dict or list, but not a
+        # sub-class (because isinstance() is far slower)
+        ptype = type(doc)
+        if ptype == dict:
+            return part
+        if ptype == list or isinstance(doc, Sequence):
             if part == '-':
                 return part
             if not RE_ARRAY_INDEX.match(str(part)):
