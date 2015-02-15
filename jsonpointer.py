@@ -196,27 +196,14 @@ class JsonPointer(object):
     def get_part(self, doc, part):
         """ Returns the next step in the correct type """
 
-        if isinstance(doc, Mapping):
-            return part
-
-        elif isinstance(doc, Sequence):
-
+        if isinstance(doc, Sequence):
             if part == '-':
                 return part
-
             if not RE_ARRAY_INDEX.match(str(part)):
                 raise JsonPointerException("'%s' is not a valid list index" % (part, ))
-
             return int(part)
-
-        elif hasattr(doc, '__getitem__'):
-            # Allow indexing via ducktyping if the target has defined __getitem__
-            return part
-
         else:
-            raise JsonPointerException("Document '%s' does not support indexing, "
-                                       "must be dict/list or support __getitem__" % type(doc))
-
+            return part
 
     def walk(self, doc, part):
         """ Walks one step in doc and returns the referenced part """
@@ -231,6 +218,10 @@ class JsonPointer(object):
             raise JsonPointerException("member '%s' not found in %s" % (part, doc))
         except IndexError:
             raise JsonPointerException("index '%s' is out of bounds" % (part, ))
+        except TypeError:
+            raise JsonPointerException("Document '%s' does not support indexing, "
+                                       "must be dict/list or support __getitem__" % type(doc))
+
 
     def contains(self, ptr):
         """Returns True if self contains the given ptr"""
