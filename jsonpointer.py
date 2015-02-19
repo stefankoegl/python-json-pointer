@@ -153,27 +153,52 @@ class JsonPointer(object):
         if not self.parts:
             return doc, None
 
-        for part in self.parts[:-1]:
-            doc = self.walk(doc, part)
+        doc = self.resolve(doc, parts=self.parts[:-1])
+        last = self.parts[-1]
+        ptype = type(doc)
+        if ptype == dict:
+            pass
+        elif ptype == list or isinstance(doc, Sequence):
+            if not RE_ARRAY_INDEX.match(str(last)):
+                raise JsonPointerException("'%s' is not a valid list index" % (last, ))
+            last = int(last)
 
-        return doc, self.get_part(doc, self.parts[-1])
+        return doc, last
 
-
-    def resolve(self, doc, default=_nothing):
+    def resolve(self, doc, default=_nothing, parts=None):
         """Resolves the pointer against doc and returns the referenced object"""
+        if parts is None:
+            parts = self.parts
 
-        for part in self.parts:
-
-            try:
-                doc = self.walk(doc, part)
-            except JsonPointerException:
-                if default is _nothing:
-                    raise
+        try:
+            for part in parts:
+                ptype = type(doc)
+                if ptype == dict:
+                    doc = doc[part]
+                elif ptype == list or isinstance(doc, Sequence):
+                    if part == '-':
+                        doc = EndOfList(doc)
+                    else:
+                        if not RE_ARRAY_INDEX.match(str(part)):
+                            raise JsonPointerException("'%s' is not a valid list index" % (part, ))
+                        doc = doc[int(part)]
                 else:
-                    return default
+                    doc = doc[part]
+        except KeyError:
+            if default is not _nothing:
+                return default
+            raise JsonPointerException("member '%s' not found in %s" % (part, doc))
+        except IndexError:
+            if default is not _nothing:
+                return default
+            raise JsonPointerException("index '%s' is out of bounds" % (part, ))
+        except TypeError:
+            if default is not _nothing:
+                return default
+            raise JsonPointerException("Document '%s' does not support indexing, "
+                                       "must be dict/list or support __getitem__" % type(doc))
 
         return doc
-
 
     get = resolve
 
