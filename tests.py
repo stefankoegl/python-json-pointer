@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
+
 import doctest
 import unittest
 import sys
@@ -61,7 +63,7 @@ class SpecificationTests(unittest.TestCase):
             "/k\"l",
             "/ ",
             "/m~0n",
-            u'/\xee',
+            '/\xee',
         ]
         for path in paths:
             ptr = JsonPointer(path)
