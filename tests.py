@@ -61,6 +61,7 @@ class SpecificationTests(unittest.TestCase):
             "/k\"l",
             "/ ",
             "/m~0n",
+            u'/\xee',
         ]
         for path in paths:
             ptr = JsonPointer(path)

@@ -49,6 +49,7 @@ __license__ = 'Modified BSD License'
 try:
     from urllib import unquote
     from itertools import izip
+    str = unicode
 except ImportError: # Python 3
     from urllib.parse import unquote
     izip = zip
