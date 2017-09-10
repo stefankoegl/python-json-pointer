@@ -36,22 +36,25 @@ from __future__ import unicode_literals
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
-__version__ = '1.11'
+__version__ = '1.10'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
 
 try:
     from urllib import unquote
+    from itertools import izip
     str = unicode
 except ImportError:  # Python 3
     from urllib.parse import unquote
+    izip = zip
 
 try:
     from collections.abc import Mapping, Sequence
 except ImportError:  # Python 3
     from collections import Mapping, Sequence
 
+from itertools import tee
 import re
 import copy
 
@@ -108,6 +111,26 @@ def resolve_pointer(doc, pointer, default=_nothing):
     return pointer.resolve(doc, default)
 
 
+def pairwise(iterable):
+    """ Transforms a list to a list of tuples of adjacent items
+
+    s -> (s0,s1), (s1,s2), (s2, s3), ...
+
+    >>> list(pairwise([]))
+    []
+
+    >>> list(pairwise([1]))
+    []
+
+    >>> list(pairwise([1, 2, 3, 4]))
+    [(1, 2), (2, 3), (3, 4)]
+    """
+    a, b = tee(iterable)
+    for _ in b:
+        break
+    return izip(a, b)
+
+
 class JsonPointerException(Exception):
     pass
 
@@ -145,62 +168,23 @@ class JsonPointer(object):
         if not self.parts:
             return doc, None
 
-        doc = self.resolve(doc, parts=self.parts[:-1])
-        last = self.parts[-1]
-        ptype = type(doc)
-        if ptype == dict:
-            pass
-        elif ptype == list or isinstance(doc, Sequence):
-            if not self._RE_ARRAY_INDEX.match(str(last)):
-                raise JsonPointerException(
-                    "'%s' is not a valid list index" % (last, )
-                )
-            last = int(last)
+        for part in self.parts[:-1]:
+            doc = self.walk(doc, part)
 
-        return doc, last
+        return doc, self.get_part(doc, self.parts[-1])
 
-    def resolve(self, doc, default=_nothing, parts=None):
-        """ Resolves the pointer against doc, returns the referenced object """
-        if parts is None:
-            parts = self.parts
+    def resolve(self, doc, default=_nothing):
+        """Resolves the pointer against doc and returns the referenced object"""
 
-        try:
-            for part in parts:
-                ptype = type(doc)
-                if ptype == dict:
-                    doc = doc[part]
-                elif ptype == list or isinstance(doc, Sequence):
-                    if part == '-':
-                        doc = EndOfList(doc)
-                    else:
-                        if not self._RE_ARRAY_INDEX.match(str(part)):
-                            raise JsonPointerException(
-                                "'%s' is not a valid list index" % (part, )
-                            )
-                        doc = doc[int(part)]
+        for part in self.parts:
+
+            try:
+                doc = self.walk(doc, part)
+            except JsonPointerException:
+                if default is _nothing:
+                    raise
                 else:
-                    doc = doc[part]
-        except KeyError:
-            if default is not _nothing:
-                return default
-            raise JsonPointerException(
-                "member '%s' not found in %s" % (part, doc)
-            )
-
-        except IndexError:
-            if default is not _nothing:
-                return default
-            raise JsonPointerException(
-                "index '%s' is out of bounds" % (part, )
-            )
-
-        except TypeError:
-            if default is not _nothing:
-                return default
-            raise JsonPointerException(
-                "Document '%s' does not support indexing, must be dict/list "
-                "or support __getitem__" % type(doc)
-            )
+                    return default
 
         return doc
 
@@ -225,19 +209,17 @@ class JsonPointer(object):
     def get_part(self, doc, part):
         """Returns the next step in the correct type"""
 
-        # Optimize for common cases of doc being a dict or list, but not a
-        # sub-class (because isinstance() is far slower)
-        ptype = type(doc)
-        if ptype == dict:
+        if isinstance(doc, Mapping):
             return part
-        if ptype == list or isinstance(doc, Sequence):
+
+        elif isinstance(doc, Sequence):
+
             if part == '-':
                 return part
 
             if not self._RE_ARRAY_INDEX.match(str(part)):
-                raise JsonPointerException(
-                    "'%s' is not a valid list index" % (part, )
-                )
+                raise JsonPointerException("'%s' is not a valid sequence index" % part)
+
             return int(part)
 
         elif hasattr(doc, '__getitem__'):
@@ -246,42 +228,34 @@ class JsonPointer(object):
             return part
 
         else:
-            raise JsonPointerException(
-                "Document '%s' does not support indexing, must be "
-                "mapping/sequence or support __getitem__" % type(doc)
-            )
+            raise JsonPointerException("Document '%s' does not support indexing, "
+                                       "must be mapping/sequence or support __getitem__" % type(doc))
+
 
     def walk(self, doc, part):
         """ Walks one step in doc and returns the referenced part """
 
         part = self.get_part(doc, part)
 
-        if part == '-' and isinstance(doc, Sequence):
-            return EndOfList(doc)
+        assert hasattr(doc, '__getitem__'), "invalid document type %s" % (type(doc),)
 
+        if isinstance(doc, Sequence):
+            if part == '-':
+                return EndOfList(doc)
+
+            try:
+                return doc[part]
+
+            except IndexError:
+                raise JsonPointerException("index '%s' is out of bounds" % (part, ))
+
+        # Else the object is a mapping or supports __getitem__(so assume custom indexing)
         try:
             return doc[part]
 
         except KeyError:
-            raise JsonPointerException(
-                "member '%s' not found in %s" % (part, doc)
-            )
+            raise JsonPointerException("member '%s' not found in %s" % (part, doc))
 
-        except IndexError:
-            raise JsonPointerException(
-                "index '%s' is out of bounds" % (part, )
-            )
-
-        except TypeError:
-            raise JsonPointerException(
-                "Document '%s' does not support indexing, must be dict/list "
-                "or support __getitem__" % type(doc)
-            )
-
-        except KeyError:
-            raise JsonPointerException(
-                "member '%s' not found in %s" % (part, doc)
-            )
 
     def contains(self, ptr):
         """ Returns True if self contains the given ptr """
