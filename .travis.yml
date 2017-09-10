@@ -1,21 +1,25 @@
 language: python
 python:
-  - "2.6"
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
-  - "3.6"
-  - "pypy"
-  - "pypy3"
-
+- '2.6'
+- '2.7'
+- '3.3'
+- '3.4'
+- '3.5'
+- '3.6'
+- pypy
+- pypy3
 install:
-  - travis_retry pip install coveralls
-
+- travis_retry pip install coveralls
 script:
-  - coverage run --source=jsonpointer tests.py
-
+- coverage run --source=jsonpointer tests.py
 after_script:
-  - coveralls
-
+- coveralls
 sudo: false
+deploy:
+  provider: pypi
+  user: skoegl
+  password:
+    secure: g+81X6n8etmQQ9ZbxoSx/OoXsDHBwgoBlesnrYP4RBHLoez3wBbI2w1tu7Uce2irWMmkoFIpQHguXxOqHVoGzx18s1njp9/1fyrJ3f6gYbcQrUnwRFjYGcIc0TUSTI9dLpnRKCp9glNwIvPx7n6/5avZIaXveLU9j4DIm1xA1ZM=
+  on:
+    tags: true
+  distributions: sdist bdist_wheel
