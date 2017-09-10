@@ -36,25 +36,22 @@ from __future__ import unicode_literals
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
-__version__ = '1.10'
+__version__ = '1.11'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
 
 try:
     from urllib import unquote
-    from itertools import izip
     str = unicode
 except ImportError:  # Python 3
     from urllib.parse import unquote
-    izip = zip
 
 try:
     from collections.abc import Mapping, Sequence
 except ImportError:  # Python 3
     from collections import Mapping, Sequence
 
-from itertools import tee
 import re
 import copy
 
@@ -109,26 +106,6 @@ def resolve_pointer(doc, pointer, default=_nothing):
 
     pointer = JsonPointer(pointer)
     return pointer.resolve(doc, default)
-
-
-def pairwise(iterable):
-    """ Transforms a list to a list of tuples of adjacent items
-
-    s -> (s0,s1), (s1,s2), (s2, s3), ...
-
-    >>> list(pairwise([]))
-    []
-
-    >>> list(pairwise([1]))
-    []
-
-    >>> list(pairwise([1, 2, 3, 4]))
-    [(1, 2), (2, 3), (3, 4)]
-    """
-    a, b = tee(iterable)
-    for _ in b:
-        break
-    return izip(a, b)
 
 
 class JsonPointerException(Exception):
