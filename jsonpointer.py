@@ -143,8 +143,7 @@ class JsonPointer(object):
             raise JsonPointerException('location must starts with /')
 
         parts = map(unquote, parts)
-        parts = [part.replace('~1', '/') for part in parts]
-        parts = [part.replace('~0', '~') for part in parts]
+        parts = [unescape(part) for part in parts]
         self.parts = parts
 
 
@@ -262,8 +261,7 @@ class JsonPointer(object):
 
         >>> ptr = JsonPointer('/~0/0/~1').path == '/~0/0/~1'
         """
-        parts = [part.replace('~', '~0') for part in self.parts]
-        parts = [part.replace('/', '~1') for part in parts]
+        parts = [escape(part) for part in self.parts]
         return ''.join('/' + part for part in parts)
 
     def __eq__(self, other):
@@ -289,9 +287,7 @@ class JsonPointer(object):
         >>> JsonPointer.from_parts(['a', '~', '/', 0]).path == '/a/~0/~1/0'
         True
         """
-        parts = [str(part) for part in parts]
-        parts = [part.replace('~', '~0') for part in parts]
-        parts = [part.replace('/', '~1') for part in parts]
+        parts = [escape(str(part)) for part in parts]
         ptr = cls(''.join('/' + part for part in parts))
         return ptr
 
@@ -313,3 +309,10 @@ def pairwise(iterable):
     for _ in b:
         break
     return izip(a, b)
+
+
+def escape(s):
+    return s.replace('~', '~0').replace('/', '~1')
+
+def unescape(s):
+    return s.replace('~1', '/').replace('~0', '~')
