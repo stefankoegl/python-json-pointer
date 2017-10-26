@@ -18,6 +18,8 @@ script:
 after_script:
 - coveralls
 sudo: false
+before_deploy:
+- pip install -r requirements-dev.txt
 deploy:
   provider: pypi
   user: skoegl
