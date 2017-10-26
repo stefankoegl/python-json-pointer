@@ -1,24 +1,20 @@
 language: python
 python:
-  - "2.6"
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
-  - "3.6"
-  - "3.6-dev"
-  - "3.7-dev"
-  - "nightly"
-  - "pypy"
-  - "pypy3"
-
+- '2.6'
+- '2.7'
+- '3.3'
+- '3.4'
+- '3.5'
+- '3.6'
+- 3.6-dev
+- 3.7-dev
+- nightly
+- pypy
+- pypy3
 install:
-  - travis_retry pip install coveralls
-
+- travis_retry pip install coveralls
 script:
-  - coverage run --source=jsonpointer tests.py
-
+- coverage run --source=jsonpointer tests.py
 after_script:
-  - coveralls
-
+- coveralls
 sudo: false
