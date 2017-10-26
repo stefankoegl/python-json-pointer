@@ -18,6 +18,10 @@ script:
 after_script:
 - coveralls
 sudo: false
+addons:
+  apt:
+    packages:
+    - pandoc
 before_deploy:
 - pip install -r requirements-dev.txt
 deploy:
