@@ -42,11 +42,9 @@ __license__ = 'Modified BSD License'
 
 
 try:
-    from urllib import unquote
     from itertools import izip
     str = unicode
 except ImportError:  # Python 3
-    from urllib.parse import unquote
     izip = zip
 
 try:
@@ -74,8 +72,13 @@ def set_pointer(doc, pointer, value, inplace=True):
     {'foo': {'another prop': {'baz': 'A string'}, 'anArray': [{'prop': 55}]}}
     True
 
-    >>> set_pointer(obj, '/foo/yet%20another%20prop', 'added prop') == \
+    >>> set_pointer(obj, '/foo/yet another prop', 'added prop') == \
     {'foo': {'another prop': {'baz': 'A string'}, 'yet another prop': 'added prop', 'anArray': [{'prop': 55}]}}
+    True
+
+    >>> obj = {'foo': {}}
+    >>> set_pointer(obj, '/foo/a%20b', 'x') == \
+    {'foo': {'a%20b': 'x' }}
     True
     """
 
@@ -86,7 +89,7 @@ def set_pointer(doc, pointer, value, inplace=True):
 def resolve_pointer(doc, pointer, default=_nothing):
     """ Resolves pointer against doc and returns the referenced object
 
-    >>> obj = {'foo': {'anArray': [ {'prop': 44}], 'another prop': {'baz': 'A string' }}}
+    >>> obj = {'foo': {'anArray': [ {'prop': 44}], 'another prop': {'baz': 'A string' }}, 'a%20b': 1, 'c d': 2}
 
     >>> resolve_pointer(obj, '') == obj
     True
@@ -94,16 +97,28 @@ def resolve_pointer(doc, pointer, default=_nothing):
     >>> resolve_pointer(obj, '/foo') == obj['foo']
     True
 
-    >>> resolve_pointer(obj, '/foo/another%20prop') == obj['foo']['another prop']
+    >>> resolve_pointer(obj, '/foo/another prop') == obj['foo']['another prop']
     True
 
-    >>> resolve_pointer(obj, '/foo/another%20prop/baz') == obj['foo']['another prop']['baz']
+    >>> resolve_pointer(obj, '/foo/another prop/baz') == obj['foo']['another prop']['baz']
     True
 
     >>> resolve_pointer(obj, '/foo/anArray/0') == obj['foo']['anArray'][0]
     True
 
     >>> resolve_pointer(obj, '/some/path', None) == None
+    True
+
+    >>> resolve_pointer(obj, '/a b', None) == None
+    True
+
+    >>> resolve_pointer(obj, '/a%20b') == 1
+    True
+
+    >>> resolve_pointer(obj, '/c d') == 2
+    True
+
+    >>> resolve_pointer(obj, '/c%20d', None) == None
     True
     """
 
@@ -158,7 +173,6 @@ class JsonPointer(object):
         if parts.pop(0) != '':
             raise JsonPointerException('location must starts with /')
 
-        parts = map(unquote, parts)
         parts = [unescape(part) for part in parts]
         self.parts = parts
 
