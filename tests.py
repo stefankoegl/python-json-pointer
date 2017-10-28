@@ -126,6 +126,12 @@ class WrongInputTests(unittest.TestCase):
         doc = [0, 1, 2]
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/10')
 
+    def test_trailing_escape(self):
+        self.assertRaises(JsonPointerException, JsonPointer, '/foo/bar~')
+
+    def test_invalid_escape(self):
+        self.assertRaises(JsonPointerException, JsonPointer, '/foo/bar~2')
+
 
 class ToLastTests(unittest.TestCase):
 

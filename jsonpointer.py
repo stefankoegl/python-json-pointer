@@ -167,8 +167,16 @@ class JsonPointer(object):
     # Array indices must not contain:
     # leading zeros, signs, spaces, decimals, etc
     _RE_ARRAY_INDEX = re.compile('0|[1-9][0-9]*$')
+    _RE_INVALID_ESCAPE = re.compile('(~[^01]|~$)')
 
     def __init__(self, pointer):
+
+        # validate escapes
+        invalid_escape = self._RE_INVALID_ESCAPE.search(pointer)
+        if invalid_escape:
+            raise JsonPointerException('Found invalid escape {0}'.format(
+                invalid_escape.group()))
+
         parts = pointer.split('/')
         if parts.pop(0) != '':
             raise JsonPointerException('location must starts with /')
