@@ -174,7 +174,7 @@ class JsonPointer(object):
         # validate escapes
         invalid_escape = self._RE_INVALID_ESCAPE.search(pointer)
         if invalid_escape:
-            raise JsonPointerException('Found invalid escape {0}'.format(
+            raise JsonPointerException('Found invalid escape {}'.format(
                 invalid_escape.group()))
 
         parts = pointer.split('/')
