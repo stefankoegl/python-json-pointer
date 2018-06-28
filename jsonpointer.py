@@ -162,7 +162,7 @@ class EndOfList(object):
 
 
 class JsonPointer(object):
-    """A JSON Pointer that can reference parts of an JSON document"""
+    """A JSON Pointer that can reference parts of a JSON document"""
 
     # Array indices must not contain:
     # leading zeros, signs, spaces, decimals, etc
@@ -179,7 +179,7 @@ class JsonPointer(object):
 
         parts = pointer.split('/')
         if parts.pop(0) != '':
-            raise JsonPointerException('location must starts with /')
+            raise JsonPointerException('Location must start with /')
 
         parts = [unescape(part) for part in parts]
         self.parts = parts
@@ -217,7 +217,7 @@ class JsonPointer(object):
 
         if len(self.parts) == 0:
             if inplace:
-                raise JsonPointerException('cannot set root in place')
+                raise JsonPointerException('Cannot set root in place')
             return value
 
         if not inplace:
