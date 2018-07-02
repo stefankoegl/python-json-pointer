@@ -53,6 +53,7 @@ except ImportError:  # Python 3
     from collections import Mapping, Sequence
 
 from itertools import tee
+from requests.utils import unquote
 import re
 import copy
 
@@ -178,10 +179,14 @@ class JsonPointer(object):
                 invalid_escape.group()))
 
         parts = pointer.split('/')
-        if parts.pop(0) != '':
-            raise JsonPointerException('Location must start with /')
+        first_part = parts.pop(0)
+        if first_part not in ('', '#'):
+            raise JsonPointerException('Location must start with / or #')
 
         parts = [unescape(part) for part in parts]
+        if first_part == '#':
+            parts = [unquote(part) for part in parts]
+
         self.parts = parts
 
     def to_last(self, doc):
