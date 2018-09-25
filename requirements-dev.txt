@@ -1,2 +1,3 @@
 wheel
-pypandoc==1.4
+twine>=1.11.0
+setuptools>=38.6.0
