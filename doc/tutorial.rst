@@ -16,10 +16,10 @@ method is basically a deep ``get``.
     >>> resolve_pointer(obj, '/foo') == obj['foo']
     True
 
-    >>> resolve_pointer(obj, '/foo/another%20prop') == obj['foo']['another prop']
+    >>> resolve_pointer(obj, '/foo/another prop') == obj['foo']['another prop']
     True
 
-    >>> resolve_pointer(obj, '/foo/another%20prop/baz') == obj['foo']['another prop']['baz']
+    >>> resolve_pointer(obj, '/foo/another prop/baz') == obj['foo']['another prop']['baz']
     True
 
     >>> resolve_pointer(obj, '/foo/anArray/0') == obj['foo']['anArray'][0]
