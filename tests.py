@@ -6,7 +6,9 @@ from __future__ import unicode_literals
 import doctest
 import unittest
 import sys
+import os
 import copy
+import subprocess
 from jsonpointer import resolve_pointer, EndOfList, JsonPointerException, \
          JsonPointer, set_pointer
 
@@ -298,6 +300,24 @@ class AltTypesTests(unittest.TestCase):
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/root/1/2/3/4')
 
 
+class CommandLineTests(unittest.TestCase):
+    """ Tests the command line """
+
+    def test_file(self):
+        output = subprocess.check_output(
+            ["bin/jsonpointer", "-f", "test/ptr.json", "test/a.json", "test/b.json"],
+            env={"PYTHONPATH": os.getcwd()},
+        )
+        self.assertEqual(output, b'[1, 2, 3]\n{"b": [1, 3, 4]}\n')
+
+    def test_pointerarg(self):
+        output = subprocess.check_output(
+            ["bin/jsonpointer", "-p", "/a", "test/a.json", "test/b.json"],
+            env={"PYTHONPATH": os.getcwd()},
+        )
+        self.assertEqual(output, b'[1, 2, 3]\n{"b": [1, 3, 4]}\n')
+
+
 
 suite = unittest.TestSuite()
 suite.addTest(unittest.makeSuite(SpecificationTests))
@@ -306,6 +326,7 @@ suite.addTest(unittest.makeSuite(WrongInputTests))
 suite.addTest(unittest.makeSuite(ToLastTests))
 suite.addTest(unittest.makeSuite(SetTests))
 suite.addTest(unittest.makeSuite(AltTypesTests))
+suite.addTest(unittest.makeSuite(CommandLineTests))
 
 modules = ['jsonpointer']
 
