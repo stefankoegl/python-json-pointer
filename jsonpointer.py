@@ -193,7 +193,7 @@ class JsonPointer(object):
         for part in self.parts[:-1]:
             doc = self.walk(doc, part)
 
-        return doc, self.get_part(doc, self.parts[-1])
+        return doc, JsonPointer.get_part(doc, self.parts[-1])
 
     def resolve(self, doc, default=_nothing):
         """Resolves the pointer against doc and returns the referenced object"""
@@ -228,7 +228,8 @@ class JsonPointer(object):
         parent[part] = value
         return doc
 
-    def get_part(self, doc, part):
+    @classmethod
+    def get_part(cls, doc, part):
         """Returns the next step in the correct type"""
 
         if isinstance(doc, Mapping):
@@ -239,7 +240,7 @@ class JsonPointer(object):
             if part == '-':
                 return part
 
-            if not self._RE_ARRAY_INDEX.match(str(part)):
+            if not JsonPointer._RE_ARRAY_INDEX.match(str(part)):
                 raise JsonPointerException("'%s' is not a valid sequence index" % part)
 
             return int(part)
@@ -252,12 +253,17 @@ class JsonPointer(object):
         else:
             raise JsonPointerException("Document '%s' does not support indexing, "
                                        "must be mapping/sequence or support __getitem__" % type(doc))
+            
+    def get_parts(self):
+        """Returns the list of the parts. For example, JsonPointer('/a/b').get_parts() == ['a', 'b']"""
+        
+        return self.parts
 
 
     def walk(self, doc, part):
         """ Walks one step in doc and returns the referenced part """
 
-        part = self.get_part(doc, part)
+        part = JsonPointer.get_part(doc, part)
 
         assert hasattr(doc, '__getitem__'), "invalid document type %s" % (type(doc),)
 
