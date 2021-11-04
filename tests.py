@@ -70,9 +70,30 @@ class SpecificationTests(unittest.TestCase):
             ptr = JsonPointer(path)
             self.assertEqual(path, ptr.path)
 
-            parts = ptr.parts
+            parts = ptr.get_parts()
+            self.assertEqual(parts, ptr.parts)
             new_ptr = JsonPointer.from_parts(parts)
             self.assertEqual(ptr, new_ptr)
+
+    def test_parts(self):
+        paths = [
+            ("", []),
+            ("/foo", ['foo']),
+            ("/foo/0", ['foo', '0']),
+            ("/", ['']),
+            ("/a~1b", ['a/b']),
+            ("/c%d", ['c%d']),
+            ("/e^f", ['e^f']),
+            ("/g|h", ['g|h']),
+            ("/i\\j", ['i\j']),
+            ("/k\"l", ['k"l']),
+            ("/ ", [' ']),
+            ("/m~0n", ['m~n']),
+            ('/\xee', ['\xee']),
+        ]
+        for path in paths:
+            ptr = JsonPointer(path[0])
+            self.assertEqual(ptr.get_parts(), path[1])
 
 
 class ComparisonTests(unittest.TestCase):
