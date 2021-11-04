@@ -36,7 +36,7 @@ from __future__ import unicode_literals
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
-__version__ = '2.1'
+__version__ = '2.2'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
