@@ -1,6 +1,5 @@
 language: python
 python:
-- '2.7'
 - '3.5'
 - '3.6'
 - '3.7'
@@ -10,16 +9,13 @@ python:
 - nightly
 - pypy3
 install:
-- travis_retry pip install coveralls
+- travis_retry pip install --upgrade setuptools wheel setuptools_scm build coveralls
 script:
+- python -m build -nwx
 - coverage run --source=jsonpointer tests.py
 after_script:
 - coveralls
 sudo: false
-addons:
-  apt:
-    packages:
-    - pandoc
 before_deploy:
 - pip install -r requirements-dev.txt
 deploy:

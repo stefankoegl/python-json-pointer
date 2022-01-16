@@ -1,4 +1,5 @@
-*.pyc
+/jsonpointer/version.py
+*.py[co]
 build
 .coverage
 MANIFEST

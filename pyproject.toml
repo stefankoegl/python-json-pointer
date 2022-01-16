@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=44", "wheel", "setuptools_scm[toml]>=3.4.3", "read_version[toml] >= 0.3.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "jsonpointer/version.py"
+write_to_template = "__version__ = '{version}'\n"
+
+[tool.read_version]
+#version = "jsonpointer.__init__:__version__"
+author = "jsonpointer.__init__:__author__"
+author_email = "jsonpointer.__init__:__email__"
+url = "jsonpointer.__init__:__website__"
+license = "jsonpointer.__init__:__license__"
