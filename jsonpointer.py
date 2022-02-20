@@ -44,8 +44,10 @@ __license__ = 'Modified BSD License'
 try:
     from itertools import izip
     str = unicode
+    encode_str = lambda u: u.encode("raw_unicode_escape")
 except ImportError:  # Python 3
     izip = zip
+    encode_str = lambda u: u
 
 try:
     from collections.abc import Mapping, Sequence
@@ -321,6 +323,12 @@ class JsonPointer(object):
 
     def __hash__(self):
         return hash(tuple(self.parts))
+
+    def __str__(self):
+        return encode_str(self.path)
+
+    def __repr__(self):
+        return "JsonPointer(" + repr(self.path) + ")"
 
     @classmethod
     def from_parts(cls, parts):
