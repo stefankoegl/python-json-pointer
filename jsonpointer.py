@@ -54,7 +54,7 @@ try:
 except ImportError:  # Python 3
     from collections import Mapping, Sequence
 
-from itertools import tee
+from itertools import tee, chain
 import re
 import copy
 
@@ -298,6 +298,23 @@ class JsonPointer(object):
     def __contains__(self, item):
         """ Returns True if self contains the given ptr """
         return self.contains(item)
+
+    def join(self, suffix):
+        """ Returns a new JsonPointer with the given suffix append to this ptr """
+        if isinstance(suffix, JsonPointer):
+            suffix_parts = suffix.parts
+        elif isinstance(suffix, str):
+            suffix_parts = JsonPointer(suffix).parts
+        else:
+            suffix_parts = suffix
+        try:
+            return JsonPointer.from_parts(chain(self.parts, suffix_parts))
+        except:
+            raise JsonPointerException("Invalid suffix")
+
+    def __truediv__(self, suffix): # Python 3
+        return self.join(suffix)
+    __div__ = __truediv__ # Python 2
 
     @property
     def path(self):

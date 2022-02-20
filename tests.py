@@ -175,6 +175,42 @@ class ComparisonTests(unittest.TestCase):
         self.assertTrue(self.ptr1 in self.ptr1)
         self.assertFalse(self.ptr3 in self.ptr1)
 
+    def test_join(self):
+
+        ptr12a = self.ptr1.join(self.ptr2)
+        self.assertEqual(ptr12a.path, "/a/b/c/a/b")
+
+        ptr12b = self.ptr1.join(self.ptr2.parts)
+        self.assertEqual(ptr12b.path, "/a/b/c/a/b")
+
+        ptr12c = self.ptr1.join(self.ptr2.parts[0:1])
+        self.assertEqual(ptr12c.path, "/a/b/c/a")
+
+        ptr12d = self.ptr1.join("/a/b")
+        self.assertEqual(ptr12d.path, "/a/b/c/a/b")
+
+        ptr12e = self.ptr1.join(["a", "b"])
+        self.assertEqual(ptr12e.path, "/a/b/c/a/b")
+
+        self.assertRaises(JsonPointerException, self.ptr1.join, 0)
+
+    def test_join_magic(self):
+
+        ptr12a = self.ptr1 / self.ptr2
+        self.assertEqual(ptr12a.path, "/a/b/c/a/b")
+
+        ptr12b = self.ptr1 / self.ptr2.parts
+        self.assertEqual(ptr12b.path, "/a/b/c/a/b")
+
+        ptr12c = self.ptr1 / self.ptr2.parts[0:1]
+        self.assertEqual(ptr12c.path, "/a/b/c/a")
+
+        ptr12d = self.ptr1 / "/a/b"
+        self.assertEqual(ptr12d.path, "/a/b/c/a/b")
+
+        ptr12e = self.ptr1 / ["a", "b"]
+        self.assertEqual(ptr12e.path, "/a/b/c/a/b")
+
 class WrongInputTests(unittest.TestCase):
 
     def test_no_start_slash(self):
