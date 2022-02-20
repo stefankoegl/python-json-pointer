@@ -225,7 +225,11 @@ class JsonPointer(object):
 
         (parent, part) = self.to_last(doc)
 
-        parent[part] = value
+        if isinstance(parent, Sequence) and part == '-':
+            parent.append(value)
+        else:
+            parent[part] = value
+
         return doc
 
     @classmethod

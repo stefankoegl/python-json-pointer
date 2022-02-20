@@ -193,6 +193,12 @@ class SetTests(unittest.TestCase):
         newdoc = set_pointer(doc, "/foo/1", "cod", inplace=False)
         self.assertEqual(resolve_pointer(newdoc, "/foo/1"), "cod")
 
+        self.assertEqual(len(doc["foo"]), 2)
+        newdoc = set_pointer(doc, "/foo/-", "xyz", inplace=False)
+        self.assertEqual(resolve_pointer(newdoc, "/foo/2"), "xyz")
+        self.assertEqual(len(doc["foo"]), 2)
+        self.assertEqual(len(newdoc["foo"]), 3)
+
         newdoc = set_pointer(doc, "/", 9, inplace=False)
         self.assertEqual(resolve_pointer(newdoc, "/"), 9)
 
@@ -208,6 +214,11 @@ class SetTests(unittest.TestCase):
         # inplace=True
         set_pointer(doc, "/foo/1", "cod")
         self.assertEqual(resolve_pointer(doc, "/foo/1"), "cod")
+
+        self.assertEqual(len(doc["foo"]), 2)
+        set_pointer(doc, "/foo/-", "xyz")
+        self.assertEqual(resolve_pointer(doc, "/foo/2"), "xyz")
+        self.assertEqual(len(doc["foo"]), 3)
 
         set_pointer(doc, "/", 9)
         self.assertEqual(resolve_pointer(doc, "/"), 9)
