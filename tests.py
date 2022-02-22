@@ -75,6 +75,50 @@ class SpecificationTests(unittest.TestCase):
             new_ptr = JsonPointer.from_parts(parts)
             self.assertEqual(ptr, new_ptr)
 
+    def test_str_and_repr(self):
+        paths = [
+            ("", "", "JsonPointer({u}'')"),
+            ("/foo", "/foo", "JsonPointer({u}'/foo')"),
+            ("/foo/0", "/foo/0", "JsonPointer({u}'/foo/0')"),
+            ("/", "/", "JsonPointer({u}'/')"),
+            ("/a~1b", "/a~1b", "JsonPointer({u}'/a~1b')"),
+            ("/c%d", "/c%d", "JsonPointer({u}'/c%d')"),
+            ("/e^f", "/e^f", "JsonPointer({u}'/e^f')"),
+            ("/g|h", "/g|h", "JsonPointer({u}'/g|h')"),
+            ("/i\\j", "/i\\j", "JsonPointer({u}'/i\\\\j')"),
+            ("/k\"l", "/k\"l", "JsonPointer({u}'/k\"l')"),
+            ("/ ", "/ ", "JsonPointer({u}'/ ')"),
+            ("/m~0n", "/m~0n", "JsonPointer({u}'/m~0n')"),
+        ]
+        for path, ptr_str, ptr_repr in paths:
+            ptr = JsonPointer(path)
+            self.assertEqual(path, ptr.path)
+
+            if sys.version_info[0] == 2:
+                u_str = "u"
+            else:
+                u_str = ""
+            self.assertEqual(ptr_str, str(ptr))
+            self.assertEqual(ptr_repr.format(u=u_str), repr(ptr))
+
+        if sys.version_info[0] == 2:
+            path = "/\xee"
+            ptr_str = b"/\xee"
+            ptr_repr = "JsonPointer(u'/\\xee')"
+        else:
+            path = "/\xee"
+            ptr_str = "/\xee"
+            ptr_repr = "JsonPointer('/\xee')"
+        ptr = JsonPointer(path)
+        self.assertEqual(path, ptr.path)
+
+        self.assertEqual(ptr_str, str(ptr))
+        self.assertEqual(ptr_repr, repr(ptr))
+
+        # should not be unicode in Python 2
+        self.assertIsInstance(str(ptr), str)
+        self.assertIsInstance(repr(ptr), str)
+
     def test_parts(self):
         paths = [
             ("", []),
@@ -130,6 +174,42 @@ class ComparisonTests(unittest.TestCase):
         self.assertTrue(self.ptr2 in self.ptr1)
         self.assertTrue(self.ptr1 in self.ptr1)
         self.assertFalse(self.ptr3 in self.ptr1)
+
+    def test_join(self):
+
+        ptr12a = self.ptr1.join(self.ptr2)
+        self.assertEqual(ptr12a.path, "/a/b/c/a/b")
+
+        ptr12b = self.ptr1.join(self.ptr2.parts)
+        self.assertEqual(ptr12b.path, "/a/b/c/a/b")
+
+        ptr12c = self.ptr1.join(self.ptr2.parts[0:1])
+        self.assertEqual(ptr12c.path, "/a/b/c/a")
+
+        ptr12d = self.ptr1.join("/a/b")
+        self.assertEqual(ptr12d.path, "/a/b/c/a/b")
+
+        ptr12e = self.ptr1.join(["a", "b"])
+        self.assertEqual(ptr12e.path, "/a/b/c/a/b")
+
+        self.assertRaises(JsonPointerException, self.ptr1.join, 0)
+
+    def test_join_magic(self):
+
+        ptr12a = self.ptr1 / self.ptr2
+        self.assertEqual(ptr12a.path, "/a/b/c/a/b")
+
+        ptr12b = self.ptr1 / self.ptr2.parts
+        self.assertEqual(ptr12b.path, "/a/b/c/a/b")
+
+        ptr12c = self.ptr1 / self.ptr2.parts[0:1]
+        self.assertEqual(ptr12c.path, "/a/b/c/a")
+
+        ptr12d = self.ptr1 / "/a/b"
+        self.assertEqual(ptr12d.path, "/a/b/c/a/b")
+
+        ptr12e = self.ptr1 / ["a", "b"]
+        self.assertEqual(ptr12e.path, "/a/b/c/a/b")
 
 class WrongInputTests(unittest.TestCase):
 
@@ -193,6 +273,12 @@ class SetTests(unittest.TestCase):
         newdoc = set_pointer(doc, "/foo/1", "cod", inplace=False)
         self.assertEqual(resolve_pointer(newdoc, "/foo/1"), "cod")
 
+        self.assertEqual(len(doc["foo"]), 2)
+        newdoc = set_pointer(doc, "/foo/-", "xyz", inplace=False)
+        self.assertEqual(resolve_pointer(newdoc, "/foo/2"), "xyz")
+        self.assertEqual(len(doc["foo"]), 2)
+        self.assertEqual(len(newdoc["foo"]), 3)
+
         newdoc = set_pointer(doc, "/", 9, inplace=False)
         self.assertEqual(resolve_pointer(newdoc, "/"), 9)
 
@@ -208,6 +294,11 @@ class SetTests(unittest.TestCase):
         # inplace=True
         set_pointer(doc, "/foo/1", "cod")
         self.assertEqual(resolve_pointer(doc, "/foo/1"), "cod")
+
+        self.assertEqual(len(doc["foo"]), 2)
+        set_pointer(doc, "/foo/-", "xyz")
+        self.assertEqual(resolve_pointer(doc, "/foo/2"), "xyz")
+        self.assertEqual(len(doc["foo"]), 3)
 
         set_pointer(doc, "/", 9)
         self.assertEqual(resolve_pointer(doc, "/"), 9)

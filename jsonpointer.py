@@ -44,15 +44,17 @@ __license__ = 'Modified BSD License'
 try:
     from itertools import izip
     str = unicode
+    encode_str = lambda u: u.encode("raw_unicode_escape")
 except ImportError:  # Python 3
     izip = zip
+    encode_str = lambda u: u
 
 try:
     from collections.abc import Mapping, Sequence
 except ImportError:  # Python 3
     from collections import Mapping, Sequence
 
-from itertools import tee
+from itertools import tee, chain
 import re
 import copy
 
@@ -225,7 +227,11 @@ class JsonPointer(object):
 
         (parent, part) = self.to_last(doc)
 
-        parent[part] = value
+        if isinstance(parent, Sequence) and part == '-':
+            parent.append(value)
+        else:
+            parent[part] = value
+
         return doc
 
     @classmethod
@@ -293,6 +299,23 @@ class JsonPointer(object):
         """ Returns True if self contains the given ptr """
         return self.contains(item)
 
+    def join(self, suffix):
+        """ Returns a new JsonPointer with the given suffix append to this ptr """
+        if isinstance(suffix, JsonPointer):
+            suffix_parts = suffix.parts
+        elif isinstance(suffix, str):
+            suffix_parts = JsonPointer(suffix).parts
+        else:
+            suffix_parts = suffix
+        try:
+            return JsonPointer.from_parts(chain(self.parts, suffix_parts))
+        except:
+            raise JsonPointerException("Invalid suffix")
+
+    def __truediv__(self, suffix): # Python 3
+        return self.join(suffix)
+    __div__ = __truediv__ # Python 2
+
     @property
     def path(self):
         """Returns the string representation of the pointer
@@ -317,6 +340,12 @@ class JsonPointer(object):
 
     def __hash__(self):
         return hash(tuple(self.parts))
+
+    def __str__(self):
+        return encode_str(self.path)
+
+    def __repr__(self):
+        return "JsonPointer(" + repr(self.path) + ")"
 
     @classmethod
     def from_parts(cls, parts):
