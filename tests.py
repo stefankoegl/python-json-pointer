@@ -129,7 +129,7 @@ class SpecificationTests(unittest.TestCase):
             ("/c%d", ['c%d']),
             ("/e^f", ['e^f']),
             ("/g|h", ['g|h']),
-            ("/i\\j", ['i\j']),
+            ("/i\\j", ['i\\j']),
             ("/k\"l", ['k"l']),
             ("/ ", [' ']),
             ("/m~0n", ['m~n']),
