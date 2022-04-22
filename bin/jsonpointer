@@ -20,7 +20,7 @@ ptr_group.add_argument('-f', '--pointer-file', type=argparse.FileType('r'),
                        nargs='?',
                        help='File containing a JSON pointer expression')
 
-ptr_group.add_argument('POINTER',  type=str, nargs='?',
+ptr_group.add_argument('-p', '--pointer',  type=str, nargs='?',
                        help='A JSON pointer expression')
 
 parser.add_argument('FILE', type=argparse.FileType('r'), nargs='+',
@@ -39,8 +39,8 @@ def main():
 
 
 def parse_pointer(args):
-    if args.POINTER:
-        ptr = args.POINTER
+    if args.pointer:
+        ptr = args.pointer
     elif args.pointer_file:
         ptr = args.pointer_file.read().strip()
     else:

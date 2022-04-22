@@ -1,4 +1,5 @@
 include AUTHORS
 include LICENSE.txt
 include README.md
+include CHANGELOG.md
 include tests.py
