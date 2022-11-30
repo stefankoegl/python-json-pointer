@@ -401,6 +401,13 @@ class AltTypesTests(unittest.TestCase):
 class HelperTests(unittest.TestCase):
     def test_singleton(self):
         self.assertIs(_Nothing(), _nothing)
+    
+    def test_get_alias(self):
+        doc = {"foo":[2,4,8,16]}
+        pointer = JsonPointer("/foo/3")
+        self.assertEqual(pointer.get(doc), 16)
+        pointer2 = JsonPointer("/bar")
+        self.assertEqual(pointer2.get(doc, 42), 42)
 
 
 suite = unittest.TestSuite()
