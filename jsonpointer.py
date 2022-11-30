@@ -29,40 +29,45 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 """ Identify specific nodes in a JSON document (RFC 6901) """
 
-from __future__ import unicode_literals
-
 # Will be parsed by setup.py to determine package metadata
-__author__ = 'Stefan Kögl <stefan@skoegl.net>'
-__version__ = '2.3'
-__website__ = 'https://github.com/stefankoegl/python-json-pointer'
-__license__ = 'Modified BSD License'
+__author__ = "Stefan Kögl <stefan@skoegl.net>"
+__version__ = "3.0"
+__website__ = "https://github.com/stefankoegl/python-json-pointer"
+__license__ = "Modified BSD License"
 
 
-try:
-    from itertools import izip
-    str = unicode
-    encode_str = lambda u: u.encode("raw_unicode_escape")
-except ImportError:  # Python 3
-    izip = zip
-    encode_str = lambda u: u
-
-try:
-    from collections.abc import Mapping, Sequence
-except ImportError:  # Python 3
-    from collections import Mapping, Sequence
-
-from itertools import tee, chain
-import re
 import copy
+import re
+from collections.abc import Mapping, Sequence
+from itertools import tee, chain
+from typing import Any, Iterable, Type, TypeVar
+
+T = TypeVar("T")
+TJsonPointer = TypeVar("TJsonPointer", bound="JsonPointer")
+JsonType = dict[str, "JsonType"] | list["JsonType"] | str | bool | int | float | None
 
 
-_nothing = object()
+class _Singleton(type):
+    _instances = {}
+
+    def __call__(cls: Type[T], *args, **kwargs) -> T:
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
 
 
-def set_pointer(doc, pointer, value, inplace=True):
+class _Nothing(metaclass=_Singleton):
+    pass
+
+
+_nothing = _Nothing()
+
+
+def set_pointer(
+    doc: JsonType, pointer: str, value: JsonType, inplace: bool = True
+) -> JsonType:
     """Resolves pointer against doc and sets the value of the target within doc.
 
     With inplace set to true, doc is modified as long as pointer is not the
@@ -84,12 +89,14 @@ def set_pointer(doc, pointer, value, inplace=True):
     True
     """
 
-    pointer = JsonPointer(pointer)
-    return pointer.set(doc, value, inplace)
+    _pointer = JsonPointer(pointer)
+    return _pointer.set(doc, value, inplace)
 
 
-def resolve_pointer(doc, pointer, default=_nothing):
-    """ Resolves pointer against doc and returns the referenced object
+def resolve_pointer(
+    doc: JsonType, pointer: str, default: JsonType | _Nothing = _nothing
+) -> JsonType:
+    """Resolves pointer against doc and returns the referenced object
 
     >>> obj = {'foo': {'anArray': [ {'prop': 44}], 'another prop': {'baz': 'A string' }}, 'a%20b': 1, 'c d': 2}
 
@@ -124,12 +131,12 @@ def resolve_pointer(doc, pointer, default=_nothing):
     True
     """
 
-    pointer = JsonPointer(pointer)
-    return pointer.resolve(doc, default)
+    _pointer = JsonPointer(pointer)
+    return _pointer.resolve(doc, default)
 
 
-def pairwise(iterable):
-    """ Transforms a list to a list of tuples of adjacent items
+def pairwise(iterable: Iterable[T]) -> Iterable[tuple[T, T]]:
+    """Transforms a list to a list of tuples of adjacent items
 
     s -> (s0,s1), (s1,s2), (s2, s3), ...
 
@@ -145,48 +152,47 @@ def pairwise(iterable):
     a, b = tee(iterable)
     for _ in b:
         break
-    return izip(a, b)
+    return zip(a, b)
 
 
 class JsonPointerException(Exception):
     pass
 
 
-class EndOfList(object):
+class EndOfList:
     """Result of accessing element "-" of a list"""
 
-    def __init__(self, list_):
+    def __init__(self, list_: list):
         self.list_ = list_
 
-    def __repr__(self):
-        return '{cls}({lst})'.format(cls=self.__class__.__name__,
-                                     lst=repr(self.list_))
+    def __repr__(self) -> str:
+        return "{cls}({lst})".format(cls=self.__class__.__name__, lst=repr(self.list_))
 
 
-class JsonPointer(object):
+class JsonPointer:
     """A JSON Pointer that can reference parts of a JSON document"""
 
     # Array indices must not contain:
     # leading zeros, signs, spaces, decimals, etc
-    _RE_ARRAY_INDEX = re.compile('0|[1-9][0-9]*$')
-    _RE_INVALID_ESCAPE = re.compile('(~[^01]|~$)')
+    _RE_ARRAY_INDEX = re.compile("0|[1-9][0-9]*$")
+    _RE_INVALID_ESCAPE = re.compile("(~[^01]|~$)")
 
-    def __init__(self, pointer):
-
+    def __init__(self, pointer: str):
         # validate escapes
         invalid_escape = self._RE_INVALID_ESCAPE.search(pointer)
         if invalid_escape:
-            raise JsonPointerException('Found invalid escape {}'.format(
-                invalid_escape.group()))
+            raise JsonPointerException(
+                "Found invalid escape {}".format(invalid_escape.group())
+            )
 
-        parts = pointer.split('/')
-        if parts.pop(0) != '':
-            raise JsonPointerException('Location must start with /')
+        parts = pointer.split("/")
+        if parts.pop(0) != "":
+            raise JsonPointerException("Location must start with /")
 
         parts = [unescape(part) for part in parts]
         self.parts = parts
 
-    def to_last(self, doc):
+    def to_last(self, doc: JsonType) -> tuple[JsonType, str | None]:
         """Resolves ptr until the last step, returns (sub-doc, last-step)"""
 
         if not self.parts:
@@ -195,13 +201,14 @@ class JsonPointer(object):
         for part in self.parts[:-1]:
             doc = self.walk(doc, part)
 
-        return doc, JsonPointer.get_part(doc, self.parts[-1])
+        return doc, self.get_part(doc, self.parts[-1])
 
-    def resolve(self, doc, default=_nothing):
+    def resolve(
+        self, doc: JsonType, default: JsonType | _Nothing = _nothing
+    ) -> JsonType:
         """Resolves the pointer against doc and returns the referenced object"""
 
         for part in self.parts:
-
             try:
                 doc = self.walk(doc, part)
             except JsonPointerException:
@@ -212,14 +219,16 @@ class JsonPointer(object):
 
         return doc
 
-    get = resolve
+    def get(self, doc: JsonType, default: JsonType | _Nothing = _nothing) -> JsonType:
+        """alias of resolve"""
+        return self.resolve(doc, default)
 
-    def set(self, doc, value, inplace=True):
+    def set(self, doc: JsonType, value: JsonType, inplace: bool = True) -> JsonType:
         """Resolve the pointer against the doc and replace the target with value."""
 
         if len(self.parts) == 0:
             if inplace:
-                raise JsonPointerException('Cannot set root in place')
+                raise JsonPointerException("Cannot set root in place")
             return value
 
         if not inplace:
@@ -227,7 +236,7 @@ class JsonPointer(object):
 
         (parent, part) = self.to_last(doc)
 
-        if isinstance(parent, Sequence) and part == '-':
+        if isinstance(parent, Sequence) and part == "-":
             parent.append(value)
         else:
             parent[part] = value
@@ -235,7 +244,7 @@ class JsonPointer(object):
         return doc
 
     @classmethod
-    def get_part(cls, doc, part):
+    def get_part(cls, doc: JsonType, part: str) -> str:
         """Returns the next step in the correct type"""
 
         if isinstance(doc, Mapping):
@@ -243,45 +252,46 @@ class JsonPointer(object):
 
         elif isinstance(doc, Sequence):
 
-            if part == '-':
+            if part == "-":
                 return part
 
-            if not JsonPointer._RE_ARRAY_INDEX.match(str(part)):
+            if not cls._RE_ARRAY_INDEX.match(str(part)):
                 raise JsonPointerException("'%s' is not a valid sequence index" % part)
 
             return int(part)
 
-        elif hasattr(doc, '__getitem__'):
+        elif hasattr(doc, "__getitem__"):
             # Allow indexing via ducktyping
             # if the target has defined __getitem__
             return part
 
         else:
-            raise JsonPointerException("Document '%s' does not support indexing, "
-                                       "must be mapping/sequence or support __getitem__" % type(doc))
-            
+            raise JsonPointerException(
+                "Document '%s' does not support indexing, "
+                "must be mapping/sequence or support __getitem__" % type(doc)
+            )
+
     def get_parts(self):
         """Returns the list of the parts. For example, JsonPointer('/a/b').get_parts() == ['a', 'b']"""
-        
+
         return self.parts
 
+    def walk(self, doc: JsonType, part: str) -> JsonType:
+        """Walks one step in doc and returns the referenced part"""
 
-    def walk(self, doc, part):
-        """ Walks one step in doc and returns the referenced part """
+        part = self.get_part(doc, part)
 
-        part = JsonPointer.get_part(doc, part)
-
-        assert hasattr(doc, '__getitem__'), "invalid document type %s" % (type(doc),)
+        assert hasattr(doc, "__getitem__"), "invalid document type %s" % (type(doc),)
 
         if isinstance(doc, Sequence):
-            if part == '-':
+            if part == "-":
                 return EndOfList(doc)
 
             try:
                 return doc[part]
 
             except IndexError:
-                raise JsonPointerException("index '%s' is out of bounds" % (part, ))
+                raise JsonPointerException("index '%s' is out of bounds" % (part,))
 
         # Else the object is a mapping or supports __getitem__(so assume custom indexing)
         try:
@@ -290,17 +300,18 @@ class JsonPointer(object):
         except KeyError:
             raise JsonPointerException("member '%s' not found in %s" % (part, doc))
 
+    def contains(self, ptr: JsonPointer) -> bool:
+        """Returns True if self contains the given ptr"""
+        return self.parts[: len(ptr.parts)] == ptr.parts
 
-    def contains(self, ptr):
-        """ Returns True if self contains the given ptr """
-        return self.parts[:len(ptr.parts)] == ptr.parts
-
-    def __contains__(self, item):
-        """ Returns True if self contains the given ptr """
+    def __contains__(self, item: JsonPointer) -> bool:
+        """Returns True if self contains the given ptr"""
         return self.contains(item)
 
-    def join(self, suffix):
-        """ Returns a new JsonPointer with the given suffix append to this ptr """
+    def join(
+        self: TJsonPointer, suffix: JsonPointer | str | Iterable[str]
+    ) -> TJsonPointer:
+        """Returns a new JsonPointer with the given suffix append to this ptr"""
         if isinstance(suffix, JsonPointer):
             suffix_parts = suffix.parts
         elif isinstance(suffix, str):
@@ -308,24 +319,25 @@ class JsonPointer(object):
         else:
             suffix_parts = suffix
         try:
-            return JsonPointer.from_parts(chain(self.parts, suffix_parts))
+            return self.from_parts(chain(self.parts, suffix_parts))
         except:
             raise JsonPointerException("Invalid suffix")
 
-    def __truediv__(self, suffix): # Python 3
+    def __truediv__(
+        self: TJsonPointer, suffix: JsonPointer | str | Iterable[str]
+    ) -> TJsonPointer:
         return self.join(suffix)
-    __div__ = __truediv__ # Python 2
 
     @property
-    def path(self):
+    def path(self) -> str:
         """Returns the string representation of the pointer
 
         >>> ptr = JsonPointer('/~0/0/~1').path == '/~0/0/~1'
         """
         parts = [escape(part) for part in self.parts]
-        return ''.join('/' + part for part in parts)
+        return "".join("/" + part for part in parts)
 
-    def __eq__(self, other):
+    def __eq__(self, other: JsonPointer | Any) -> bool:
         """Compares a pointer to another object
 
         Pointers can be compared by comparing their strings (or splitted
@@ -338,29 +350,32 @@ class JsonPointer(object):
 
         return self.parts == other.parts
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(tuple(self.parts))
 
-    def __str__(self):
-        return encode_str(self.path)
+    def __str__(self) -> str:
+        return self.path
 
-    def __repr__(self):
-        return "JsonPointer(" + repr(self.path) + ")"
+    def __repr__(self) -> str:
+        return type(self).__name__ + "(" + repr(self.path) + ")"
 
     @classmethod
-    def from_parts(cls, parts):
+    def from_parts(cls: Type[TJsonPointer], parts: Iterable[str | int]) -> TJsonPointer:
         """Constructs a JsonPointer from a list of (unescaped) paths
 
         >>> JsonPointer.from_parts(['a', '~', '/', 0]).path == '/a/~0/~1/0'
         True
         """
         parts = [escape(str(part)) for part in parts]
-        ptr = cls(''.join('/' + part for part in parts))
+        ptr = cls("".join("/" + part for part in parts))
         return ptr
 
 
-def escape(s):
-    return s.replace('~', '~0').replace('/', '~1')
+def escape(s: str) -> str:
+    # Escape `~` first! https://www.rfc-editor.org/rfc/rfc6901#section-4
+    return s.replace("~", "~0").replace("/", "~1")
 
-def unescape(s):
-    return s.replace('~1', '/').replace('~0', '~')
+
+def unescape(s: str) -> str:
+    # Unscape `~` last! https://www.rfc-editor.org/rfc/rfc6901#section-4
+    return s.replace("~1", "/").replace("~0", "~")
