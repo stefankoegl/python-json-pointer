@@ -29,6 +29,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+from __future__ import annotations
+
 """ Identify specific nodes in a JSON document (RFC 6901) """
 
 # Will be parsed by setup.py to determine package metadata
