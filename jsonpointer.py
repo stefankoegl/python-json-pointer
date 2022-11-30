@@ -44,11 +44,11 @@ import copy
 import re
 from collections.abc import Mapping, Sequence
 from itertools import tee, chain
-from typing import Any, Iterable, Optional, Type, TypeVar, Union
+from typing import *
 
 T = TypeVar("T")
 TJsonPointer = TypeVar("TJsonPointer", bound="JsonPointer")
-JsonType = Union[dict[str, "JsonType"], list["JsonType"], str, bool, int, float, None]
+JsonType = Union[Dict[str, "JsonType"], List["JsonType"], str, bool, int, float, None]
 _Parts = Union[str, int]
 _Suffixes = Union["JsonPointer", str, Iterable[str]]
 _Undefined = Union[T, "_Nothing"]
