@@ -44,11 +44,14 @@ import copy
 import re
 from collections.abc import Mapping, Sequence
 from itertools import tee, chain
-from typing import Any, Iterable, Type, TypeVar
+from typing import Any, Iterable, Optional, Type, TypeVar, Union
 
 T = TypeVar("T")
 TJsonPointer = TypeVar("TJsonPointer", bound="JsonPointer")
-JsonType = dict[str, "JsonType"] | list["JsonType"] | str | bool | int | float | None
+JsonType = Union[dict[str, "JsonType"], list["JsonType"], str, bool, int, float, None]
+_Parts = Union[str, int]
+_Suffixes = Union["JsonPointer", str, Iterable[str]]
+_Undefined = Union[T, "_Nothing"]
 
 
 class _Singleton(type):
@@ -96,7 +99,7 @@ def set_pointer(
 
 
 def resolve_pointer(
-    doc: JsonType, pointer: str, default: JsonType | _Nothing = _nothing
+    doc: JsonType, pointer: str, default: _Undefined[JsonType] = _nothing
 ) -> JsonType:
     """Resolves pointer against doc and returns the referenced object
 
@@ -194,7 +197,7 @@ class JsonPointer:
         parts = [unescape(part) for part in parts]
         self.parts = parts
 
-    def to_last(self, doc: JsonType) -> tuple[JsonType, str | None]:
+    def to_last(self, doc: JsonType) -> tuple[JsonType, Optional[str]]:
         """Resolves ptr until the last step, returns (sub-doc, last-step)"""
 
         if not self.parts:
@@ -206,7 +209,7 @@ class JsonPointer:
         return doc, self.get_part(doc, self.parts[-1])
 
     def resolve(
-        self, doc: JsonType, default: JsonType | _Nothing = _nothing
+        self, doc: JsonType, default: _Undefined[JsonType] = _nothing
     ) -> JsonType:
         """Resolves the pointer against doc and returns the referenced object"""
 
@@ -221,7 +224,7 @@ class JsonPointer:
 
         return doc
 
-    def get(self, doc: JsonType, default: JsonType | _Nothing = _nothing) -> JsonType:
+    def get(self, doc: JsonType, default: _Undefined[JsonType] = _nothing) -> JsonType:
         """alias of resolve"""
         return self.resolve(doc, default)
 
@@ -310,9 +313,7 @@ class JsonPointer:
         """Returns True if self contains the given ptr"""
         return self.contains(item)
 
-    def join(
-        self: TJsonPointer, suffix: JsonPointer | str | Iterable[str]
-    ) -> TJsonPointer:
+    def join(self: TJsonPointer, suffix: _Suffixes) -> TJsonPointer:
         """Returns a new JsonPointer with the given suffix append to this ptr"""
         if isinstance(suffix, JsonPointer):
             suffix_parts = suffix.parts
@@ -325,9 +326,7 @@ class JsonPointer:
         except:
             raise JsonPointerException("Invalid suffix")
 
-    def __truediv__(
-        self: TJsonPointer, suffix: JsonPointer | str | Iterable[str]
-    ) -> TJsonPointer:
+    def __truediv__(self: TJsonPointer, suffix: _Suffixes) -> TJsonPointer:
         return self.join(suffix)
 
     @property
@@ -339,7 +338,7 @@ class JsonPointer:
         parts = [escape(part) for part in self.parts]
         return "".join("/" + part for part in parts)
 
-    def __eq__(self, other: JsonPointer | Any) -> bool:
+    def __eq__(self, other: Union[JsonPointer, Any]) -> bool:
         """Compares a pointer to another object
 
         Pointers can be compared by comparing their strings (or splitted
@@ -362,7 +361,7 @@ class JsonPointer:
         return type(self).__name__ + "(" + repr(self.path) + ")"
 
     @classmethod
-    def from_parts(cls: Type[TJsonPointer], parts: Iterable[str | int]) -> TJsonPointer:
+    def from_parts(cls: Type[TJsonPointer], parts: Iterable[_Parts]) -> TJsonPointer:
         """Constructs a JsonPointer from a list of (unescaped) paths
 
         >>> JsonPointer.from_parts(['a', '~', '/', 0]).path == '/a/~0/~1/0'
