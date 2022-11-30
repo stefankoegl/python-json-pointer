@@ -9,7 +9,7 @@ python:
 - nightly
 - pypy3
 install:
-- travis_retry pip install importlib-metadata
+- travis_retry pip install setuptools
 - travis_retry pip install coveralls
 script:
 - coverage run --source=jsonpointer tests.py
