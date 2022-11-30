@@ -10,7 +10,7 @@ python:
 - nightly
 - pypy3
 install:
-- travis_retry apt-get install python3-setuptools
+- travis_retry sudo apt-get install python3-setuptools
 - travis_retry pip install coveralls
 script:
 - coverage run --source=jsonpointer tests.py
