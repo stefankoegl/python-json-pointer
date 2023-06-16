@@ -10,7 +10,7 @@ help:
 	@echo
 
 test:
-	python tests.py
+	python -munittest
 
 coverage:
 	coverage run --source=jsonpointer tests.py

@@ -7,6 +7,7 @@ import doctest
 import unittest
 import sys
 import copy
+import jsonpointer
 from jsonpointer import resolve_pointer, EndOfList, JsonPointerException, \
          JsonPointer, set_pointer
 
@@ -410,23 +411,6 @@ class AltTypesTests(unittest.TestCase):
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/root/1/2/3/4')
 
 
-
-suite = unittest.TestSuite()
-suite.addTest(unittest.makeSuite(SpecificationTests))
-suite.addTest(unittest.makeSuite(ComparisonTests))
-suite.addTest(unittest.makeSuite(WrongInputTests))
-suite.addTest(unittest.makeSuite(ToLastTests))
-suite.addTest(unittest.makeSuite(SetTests))
-suite.addTest(unittest.makeSuite(AltTypesTests))
-
-modules = ['jsonpointer']
-
-for module in modules:
-    m = __import__(module, fromlist=[module])
-    suite.addTest(doctest.DocTestSuite(m))
-
-runner = unittest.TextTestRunner(verbosity=1)
-result = runner.run(suite)
-
-if not result.wasSuccessful():
-    sys.exit(1)
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(jsonpointer))
+    return tests
