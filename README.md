@@ -3,7 +3,6 @@ python-json-pointer
 
 [![PyPI version](https://img.shields.io/pypi/v/jsonpointer.svg)](https://pypi.python.org/pypi/jsonpointer/)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/jsonpointer.svg)](https://pypi.python.org/pypi/jsonpointer/)
-[![Build Status](https://travis-ci.org/stefankoegl/python-json-pointer.svg?branch=master)](https://travis-ci.org/stefankoegl/python-json-pointer)
 [![Coverage Status](https://coveralls.io/repos/stefankoegl/python-json-pointer/badge.svg?branch=master)](https://coveralls.io/r/stefankoegl/python-json-pointer?branch=master)
 
 
