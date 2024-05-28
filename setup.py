@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from setuptools import setup
-import re
 import io
 import os.path
+import re
+
+from setuptools import setup
 
 dirname = os.path.dirname(os.path.abspath(__file__))
 filename = os.path.join(dirname, 'jsonpointer.py')
@@ -14,7 +15,7 @@ docstrings = re.findall('"""(.*)"""', src)
 PACKAGE = 'jsonpointer'
 
 MODULES = (
-        'jsonpointer',
+    'jsonpointer',
 )
 
 AUTHOR_EMAIL = metadata['author']
@@ -26,10 +27,8 @@ DESCRIPTION = docstrings[0]
 # Extract name and e-mail ("Firstname Lastname <mail@example.org>")
 AUTHOR, EMAIL = re.match(r'(.*) <(.*)>', AUTHOR_EMAIL).groups()
 
-
 with open('README.md') as readme:
-	long_description = readme.read()
-
+    long_description = readme.read()
 
 CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
@@ -64,4 +63,4 @@ setup(name=PACKAGE,
       scripts=['bin/jsonpointer'],
       classifiers=CLASSIFIERS,
       python_requires='>=3.7',
-)
+      )

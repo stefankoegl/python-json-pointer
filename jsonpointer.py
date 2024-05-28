@@ -32,23 +32,20 @@
 
 """ Identify specific nodes in a JSON document (RFC 6901) """
 
-
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
 __version__ = '3.0.0'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
-
-
 try:
     from collections.abc import Mapping, Sequence
 except ImportError:  # Python 3
     from collections import Mapping, Sequence
 
-from itertools import tee, chain
-import re
 import copy
+import re
+from itertools import tee, chain
 
 _nothing = object()
 
@@ -298,7 +295,7 @@ class JsonPointer(object):
             suffix_parts = suffix
         try:
             return JsonPointer.from_parts(chain(self.parts, suffix_parts))
-        except:
+        except:  # noqa E722
             raise JsonPointerException("Invalid suffix")
 
     def __truediv__(self, suffix):  # Python 3
