@@ -1,6 +1,6 @@
 name: Python package
 
-on: [push]
+on: [ push ]
 
 jobs:
   build:
@@ -9,12 +9,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["2.7", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
@@ -23,12 +23,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest
           pip install coveralls
-#      - name: Lint with flake8
-#        run: |
+          #      - name: Lint with flake8
+          #        run: |
           # stop the build if there are Python syntax errors or undefined names
           # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          # flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        # flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Test
         run: |
           make coverage

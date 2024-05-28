@@ -3,20 +3,21 @@
 
 from __future__ import unicode_literals
 
-import doctest
-import unittest
-import sys
 import copy
+import doctest
+import sys
+import unittest
+
 import jsonpointer
 from jsonpointer import resolve_pointer, EndOfList, JsonPointerException, \
-         JsonPointer, set_pointer
+    JsonPointer, set_pointer
 
 
 class SpecificationTests(unittest.TestCase):
     """ Tests all examples from the JSON Pointer specification """
 
     def test_example(self):
-        doc =   {
+        doc = {
             "foo": ["bar", "baz"],
             "": 0,
             "a/b": 1,
@@ -41,7 +42,6 @@ class SpecificationTests(unittest.TestCase):
         self.assertEqual(resolve_pointer(doc, "/k\"l"), 6)
         self.assertEqual(resolve_pointer(doc, "/ "), 7)
         self.assertEqual(resolve_pointer(doc, "/m~0n"), 8)
-
 
     def test_eol(self):
         doc = {
@@ -165,19 +165,16 @@ class ComparisonTests(unittest.TestCase):
         self.assertFalse(p1 == "/something/1/b")
 
     def test_contains(self):
-
         self.assertTrue(self.ptr1.contains(self.ptr2))
         self.assertTrue(self.ptr1.contains(self.ptr1))
         self.assertFalse(self.ptr1.contains(self.ptr3))
 
     def test_contains_magic(self):
-
         self.assertTrue(self.ptr2 in self.ptr1)
         self.assertTrue(self.ptr1 in self.ptr1)
         self.assertFalse(self.ptr3 in self.ptr1)
 
     def test_join(self):
-
         ptr12a = self.ptr1.join(self.ptr2)
         self.assertEqual(ptr12a.path, "/a/b/c/a/b")
 
@@ -196,7 +193,6 @@ class ComparisonTests(unittest.TestCase):
         self.assertRaises(JsonPointerException, self.ptr1.join, 0)
 
     def test_join_magic(self):
-
         ptr12a = self.ptr1 / self.ptr2
         self.assertEqual(ptr12a.path, "/a/b/c/a/b")
 
@@ -211,6 +207,7 @@ class ComparisonTests(unittest.TestCase):
 
         ptr12e = self.ptr1 / ["a", "b"]
         self.assertEqual(ptr12e.path, "/a/b/c/a/b")
+
 
 class WrongInputTests(unittest.TestCase):
 
@@ -244,7 +241,6 @@ class ToLastTests(unittest.TestCase):
         self.assertEqual(doc, last)
         self.assertTrue(nxt is None)
 
-
     def test_path(self):
         doc = {'a': [{'b': 1, 'c': 2}, 5]}
         ptr = JsonPointer('/a/0/b')
@@ -256,7 +252,7 @@ class ToLastTests(unittest.TestCase):
 class SetTests(unittest.TestCase):
 
     def test_set(self):
-        doc =   {
+        doc = {
             "foo": ["bar", "baz"],
             "": 0,
             "a/b": 1,
@@ -285,7 +281,7 @@ class SetTests(unittest.TestCase):
 
         newdoc = set_pointer(doc, "/fud", {}, inplace=False)
         newdoc = set_pointer(newdoc, "/fud/gaw", [1, 2, 3], inplace=False)
-        self.assertEqual(resolve_pointer(newdoc, "/fud"), {'gaw' : [1, 2, 3]})
+        self.assertEqual(resolve_pointer(newdoc, "/fud"), {'gaw': [1, 2, 3]})
 
         newdoc = set_pointer(doc, "", 9, inplace=False)
         self.assertEqual(newdoc, 9)
@@ -307,14 +303,13 @@ class SetTests(unittest.TestCase):
         self.assertRaises(JsonPointerException, set_pointer, doc, "/fud/gaw", 9)
 
         set_pointer(doc, "/fud", {})
-        set_pointer(doc, "/fud/gaw", [1, 2, 3] )
-        self.assertEqual(resolve_pointer(doc, "/fud"), {'gaw' : [1, 2, 3]})
+        set_pointer(doc, "/fud/gaw", [1, 2, 3])
+        self.assertEqual(resolve_pointer(doc, "/fud"), {'gaw': [1, 2, 3]})
 
         self.assertRaises(JsonPointerException, set_pointer, doc, "", 9)
 
 
 class AltTypesTests(unittest.TestCase):
-
     class Node(object):
         def __init__(self, name, parent=None):
             self.name = name
@@ -349,12 +344,12 @@ class AltTypesTests(unittest.TestCase):
     class mdict(object):
         def __init__(self, d):
             self._d = d
+
         def __getitem__(self, item):
             return self._d[item]
 
     mdict = mdict({'root': {'1': {'2': '3'}}})
     Node = Node
-
 
     def test_alttypes(self):
         Node = self.Node
