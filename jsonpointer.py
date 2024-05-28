@@ -38,13 +38,9 @@ __version__ = '3.0.0'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
-try:
-    from collections.abc import Mapping, Sequence
-except ImportError:  # Python 3
-    from collections import Mapping, Sequence
-
 import copy
 import re
+from collections.abc import Mapping, Sequence
 from itertools import tee, chain
 
 _nothing = object()
@@ -300,8 +296,6 @@ class JsonPointer(object):
 
     def __truediv__(self, suffix):  # Python 3
         return self.join(suffix)
-
-    __div__ = __truediv__  # Python 2
 
     @property
     def path(self):
