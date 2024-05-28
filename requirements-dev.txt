@@ -1,4 +1,4 @@
 wheel
-setuptools>=70
+setuptools>=38.6.0
 coverage
 flake8==7.0.0

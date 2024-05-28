@@ -51,7 +51,7 @@ _nothing = object()
 
 
 def set_pointer(doc, pointer, value, inplace=True):
-    """Resolves pointer against doc and sets the value of the target within doc.
+    """Resolves a pointer against doc and sets the value of the target within doc.
 
     With inplace set to true, doc is modified as long as pointer is not the
     root.
