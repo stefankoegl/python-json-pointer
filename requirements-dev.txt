@@ -1,5 +1,4 @@
 wheel
-twine>=5.1.0
 setuptools>=70
 coverage
 flake8==7.0.0
