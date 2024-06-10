@@ -32,38 +32,22 @@
 
 """ Identify specific nodes in a JSON document (RFC 6901) """
 
-from __future__ import unicode_literals
-
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
-__version__ = '2.4'
+__version__ = '3.0.0'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
-
-try:
-    from itertools import izip
-    str = unicode
-    encode_str = lambda u: u.encode("raw_unicode_escape")
-except ImportError:  # Python 3
-    izip = zip
-    encode_str = lambda u: u
-
-try:
-    from collections.abc import Mapping, Sequence
-except ImportError:  # Python 3
-    from collections import Mapping, Sequence
-
-from itertools import tee, chain
-import re
 import copy
-
+import re
+from collections.abc import Mapping, Sequence
+from itertools import tee, chain
 
 _nothing = object()
 
 
 def set_pointer(doc, pointer, value, inplace=True):
-    """Resolves pointer against doc and sets the value of the target within doc.
+    """Resolves a pointer against doc and sets the value of the target within doc.
 
     With inplace set to true, doc is modified as long as pointer is not the
     root.
@@ -145,7 +129,7 @@ def pairwise(iterable):
     a, b = tee(iterable)
     for _ in b:
         break
-    return izip(a, b)
+    return zip(a, b)
 
 
 class JsonPointerException(Exception):
@@ -259,12 +243,11 @@ class JsonPointer(object):
         else:
             raise JsonPointerException("Document '%s' does not support indexing, "
                                        "must be mapping/sequence or support __getitem__" % type(doc))
-            
+
     def get_parts(self):
         """Returns the list of the parts. For example, JsonPointer('/a/b').get_parts() == ['a', 'b']"""
-        
-        return self.parts
 
+        return self.parts
 
     def walk(self, doc, part):
         """ Walks one step in doc and returns the referenced part """
@@ -281,7 +264,7 @@ class JsonPointer(object):
                 return doc[part]
 
             except IndexError:
-                raise JsonPointerException("index '%s' is out of bounds" % (part, ))
+                raise JsonPointerException("index '%s' is out of bounds" % (part,))
 
         # Else the object is a mapping or supports __getitem__(so assume custom indexing)
         try:
@@ -289,7 +272,6 @@ class JsonPointer(object):
 
         except KeyError:
             raise JsonPointerException("member '%s' not found in %s" % (part, doc))
-
 
     def contains(self, ptr):
         """ Returns True if self contains the given ptr """
@@ -309,12 +291,11 @@ class JsonPointer(object):
             suffix_parts = suffix
         try:
             return JsonPointer.from_parts(chain(self.parts, suffix_parts))
-        except:
+        except:  # noqa E722
             raise JsonPointerException("Invalid suffix")
 
-    def __truediv__(self, suffix): # Python 3
+    def __truediv__(self, suffix):  # Python 3
         return self.join(suffix)
-    __div__ = __truediv__ # Python 2
 
     @property
     def path(self):
@@ -342,10 +323,10 @@ class JsonPointer(object):
         return hash(tuple(self.parts))
 
     def __str__(self):
-        return encode_str(self.path)
+        return self.path
 
     def __repr__(self):
-        return "JsonPointer(" + repr(self.path) + ")"
+        return type(self).__name__ + "(" + repr(self.path) + ")"
 
     @classmethod
     def from_parts(cls, parts):
@@ -361,6 +342,7 @@ class JsonPointer(object):
 
 def escape(s):
     return s.replace('~', '~0').replace('/', '~1')
+
 
 def unescape(s):
     return s.replace('~1', '/').replace('~0', '~')

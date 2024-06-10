@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
 
-import sys
-import os.path
-import json
-import jsonpointer
 import argparse
+import json
+import sys
 
+import jsonpointer
 
 parser = argparse.ArgumentParser(
     description='Resolve a JSON pointer on JSON files')
@@ -20,7 +18,7 @@ ptr_group.add_argument('-f', '--pointer-file', type=argparse.FileType('r'),
                        nargs='?',
                        help='File containing a JSON pointer expression')
 
-ptr_group.add_argument('POINTER',  type=str, nargs='?',
+ptr_group.add_argument('POINTER', type=str, nargs='?',
                        help='A JSON pointer expression')
 
 parser.add_argument('FILE', type=argparse.FileType('r'), nargs='+',

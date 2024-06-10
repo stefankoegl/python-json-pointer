@@ -6,3 +6,4 @@ dist
 *.swp
 doc/_build
 *.egg-info
+.idea

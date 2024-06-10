@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from setuptools import setup
-import re
 import io
 import os.path
+import re
+
+from setuptools import setup
 
 dirname = os.path.dirname(os.path.abspath(__file__))
 filename = os.path.join(dirname, 'jsonpointer.py')
@@ -14,7 +15,7 @@ docstrings = re.findall('"""(.*)"""', src)
 PACKAGE = 'jsonpointer'
 
 MODULES = (
-        'jsonpointer',
+    'jsonpointer',
 )
 
 AUTHOR_EMAIL = metadata['author']
@@ -26,10 +27,8 @@ DESCRIPTION = docstrings[0]
 # Extract name and e-mail ("Firstname Lastname <mail@example.org>")
 AUTHOR, EMAIL = re.match(r'(.*) <(.*)>', AUTHOR_EMAIL).groups()
 
-
 with open('README.md') as readme:
-	long_description = readme.read()
-
+    long_description = readme.read()
 
 CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
@@ -38,8 +37,6 @@ CLASSIFIERS = [
     'License :: OSI Approved :: BSD License',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 2',
-    'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
@@ -65,5 +62,5 @@ setup(name=PACKAGE,
       py_modules=MODULES,
       scripts=['bin/jsonpointer'],
       classifiers=CLASSIFIERS,
-      python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, !=3.6.*',
-)
+      python_requires='>=3.7',
+      )
