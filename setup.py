@@ -18,7 +18,7 @@ MODULES = (
     'jsonpointer',
 )
 
-AUTHOR_EMAIL = metadata['author']
+AUTHOR_EMAIL = metadata['author'].encode('utf8')
 VERSION = metadata['version']
 WEBSITE = metadata['website']
 LICENSE = metadata['license']
