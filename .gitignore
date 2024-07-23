@@ -7,3 +7,4 @@ dist
 doc/_build
 *.egg-info
 .idea
+.venv

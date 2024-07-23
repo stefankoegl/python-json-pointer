@@ -9,8 +9,7 @@ import sys
 import unittest
 
 import jsonpointer
-from jsonpointer import resolve_pointer, EndOfList, JsonPointerException, \
-    JsonPointer, set_pointer
+from jsonpointer import (resolve_pointer, EndOfList, JsonPointerException, JsonPointer, set_pointer)
 
 
 class SpecificationTests(unittest.TestCase):

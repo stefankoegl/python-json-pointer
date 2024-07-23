@@ -1,0 +1,74 @@
+[build-system]
+requires = ["poetry_core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+jsonpointer = "bin.jsonpointer:main"
+
+[tool.poetry]
+name = "jsonpointer"
+packages = [
+    { include = "jsonpointer" },
+    { include = "README.md" },
+    { include = "LICENSE" },
+    { include = "tests" },
+]
+version = "3.0.1"
+description = "Resolve JSON Pointers in Python"
+readme = "README.md"
+keywords = ["json", "pointer", "rfc6901"]
+authors = [
+    "Stefan Kögl <stefan@skoegl.net>",
+    "Daniel Moran <daniel@moransoftware.ca>",
+    "Alexander Shorin <kxepal@gmail.com>",
+    "Christopher J. White <chris@grierwhite.com>",
+]
+maintainers = [
+    "Daniel Moran <daniel@moransoftware.ca>",
+]
+license = "Modified BSD License"
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Environment :: Console',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: BSD License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Programming Language :: Python :: Implementation :: PyPy',
+    'Topic :: Software Development :: Libraries',
+    'Topic :: Utilities',
+]
+homepage = "https://github.com/stefankoegl/python-json-pointer"
+repository = "https://github.com/stefankoegl/python-json-pointer"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+importlib-metadata = { version = "^4.8.1", python = "<3.8" }
+
+[tool.poetry.group.dev.dependencies]
+coverage = "^7"
+flake8 = { version = "^7.1", python = ">=3.8.1" }
+flake8-pyproject = { version = "^1.2.3", python = ">=3.8.1" }
+
+[tool.flake8]
+max-line-length = 120
+exclude = [
+    ".git",
+    ".tox",
+    "dist",
+    "doc",
+    "*egg",
+    "build",
+    ".venv",
+    ".github",
+    "__pycache__",
+]

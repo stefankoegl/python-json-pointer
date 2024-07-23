@@ -19,19 +19,16 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: "Setup Python, Poetry and Dependencies"
+        uses: dsoftwareinc/setup-python-poetry-action@v1
         with:
-          python-version: 3.12
-          allow-prereleases: true
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8
+          python-version: "3.12"
+          poetry-version: "1.8.3"
+
       - name: Run flake8
         shell: bash
         run: |
-          flake8
+          poetry run flake8
 
   test:
     needs: [ lint ]
@@ -40,19 +37,43 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11", "3.12" ]
+        poetry-version: [ "1.8.3" ]
+
+        exclude:
+          - python-version: "3.7"
+            poetry-version: "1.8.3"
+        include:
+          - python-version: "3.7"
+            poetry-version: "1.5.1"
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+
+      - name: "Setup Python, Poetry and Dependencies"
+        uses: dsoftwareinc/setup-python-poetry-action@v1
         with:
           python-version: ${{ matrix.python-version }}
-          allow-prereleases: true
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          poetry-version: ${{ matrix.poetry-version }}
 
       - name: Test
         run: |
-          make coverage
+          poetry install --no-interaction
+          poetry run python -m unittest          
+
+  test-with-coverage:
+    needs: [ test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Setup Python, Poetry and Dependencies"
+        uses: dsoftwareinc/setup-python-poetry-action@v1
+        with:
+          python-version: "3.12"
+          poetry-version: "1.8.3"
+
+      - name: Test
+        run: |
+          poetry install --no-interaction
+          poetry run coverage run -m unittest
+          poetry run coverage report -m
