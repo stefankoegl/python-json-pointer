@@ -1,59 +1,67 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 import argparse
 import json
+import os
 import sys
 
 import jsonpointer
 
-parser = argparse.ArgumentParser(
-    description='Resolve a JSON pointer on JSON files')
-
-# Accept pointer as argument or as file
-ptr_group = parser.add_mutually_exclusive_group(required=True)
-
-ptr_group.add_argument('-f', '--pointer-file', type=argparse.FileType('r'),
-                       nargs='?',
-                       help='File containing a JSON pointer expression')
-
-ptr_group.add_argument('POINTER', type=str, nargs='?',
-                       help='A JSON pointer expression')
-
-parser.add_argument('FILE', type=argparse.FileType('r'), nargs='+',
-                    help='Files for which the pointer should be resolved')
-parser.add_argument('--indent', type=int, default=None,
-                    help='Indent output by n spaces')
-parser.add_argument('-v', '--version', action='version',
-                    version='%(prog)s ' + jsonpointer.__version__)
-
-
 def main():
+    # First handle backward compatibility for v1 command line syntax:
+    # jsonpointer ptr.json file.json
+    if len(sys.argv) >= 3 and not sys.argv[1].startswith('-'):
+        # Check if the first argument is a file path
+        if os.path.isfile(sys.argv[1]):
+            # Insert -f option before the first argument
+            sys.argv.insert(1, '-f')
+
+    parser = argparse.ArgumentParser(
+        description='Resolve a JSON pointer on JSON files')
+
+    # Use mutually exclusive group for pointer specification
+    pointer_group = parser.add_mutually_exclusive_group(required=True)
+    pointer_group.add_argument('-e', '--expression',
+                             help='A JSON pointer expression (e.g. "/foo/bar")')
+    pointer_group.add_argument('-f', '--pointer-file', metavar='POINTER_FILE',
+                             help='File containing a JSON pointer expression')
+
+    parser.add_argument('FILE', type=argparse.FileType('r'), nargs='+',
+                        help='Files for which the pointer should be resolved')
+    parser.add_argument('--indent', type=int, default=None,
+                        help='Indent output by n spaces')
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s ' + jsonpointer.__version__)
+
+    args = parser.parse_args()
+    
     try:
-        resolve_files()
+        resolve_files(args)
     except KeyboardInterrupt:
         sys.exit(1)
 
 
-def parse_pointer(args):
-    if args.POINTER:
-        ptr = args.POINTER
+def resolve_files(args):
+    """Resolve a JSON pointer on JSON files"""
+    # Get pointer from expression or file
+    if args.expression:
+        ptr = args.expression
     elif args.pointer_file:
-        ptr = args.pointer_file.read().strip()
+        with open(args.pointer_file) as f:
+            content = f.read().strip()
+            # Handle JSON-encoded strings
+            if content.startswith('"') and content.endswith('"'):
+                try:
+                    ptr = json.loads(content)
+                except json.JSONDecodeError:
+                    ptr = content
+            else:
+                ptr = content
     else:
-        parser.print_usage()
-        sys.exit(1)
+        sys.exit(1)  # This should never happen because the group is required
 
-    return ptr
-
-
-def resolve_files():
-    """ Resolve a JSON pointer on JSON files """
-    args = parser.parse_args()
-
-    ptr = parse_pointer(args)
-
+    # Process each file
     for f in args.FILE:
         doc = json.load(f)
         try:

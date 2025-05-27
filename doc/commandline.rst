@@ -6,18 +6,26 @@ that can be used to resolve a JSON pointers on JSON files.
 
 The program has the following usage ::
 
-    usage: jsonpointer [-h] [--indent INDENT] [-v] POINTER FILE [FILE ...]
+    usage: jsonpointer [-h] (-e EXPRESSION | -f POINTER_FILE) [--indent INDENT]
+                       [-v]
+                       FILE [FILE ...]
 
     Resolve a JSON pointer on JSON files
 
     positional arguments:
-      POINTER          File containing a JSON pointer expression
-      FILE             Files for which the pointer should be resolved
+      FILE                  Files for which the pointer should be resolved
 
-    optional arguments:
-      -h, --help       show this help message and exit
-      --indent INDENT  Indent output by n spaces
-      -v, --version    show program's version number and exit
+    options:
+      -h, --help            show this help message and exit
+      -e EXPRESSION, --expression EXPRESSION
+                            A JSON pointer expression (e.g. "/foo/bar")
+      -f POINTER_FILE, --pointer-file POINTER_FILE
+                            File containing a JSON pointer expression
+      --indent INDENT       Indent output by n spaces
+      -v, --version         show program's version number and exit
+
+For backward compatibility, if the first argument is a file path, it is treated as
+if `-f` was specified, allowing the command to be used as in previous versions.
 
 
 Example
@@ -36,7 +44,17 @@ Example
     $ cat ptr.json
     "/a"
 
-    # resolve JSON pointer
+    # resolve JSON pointer (version 1 compatible syntax)
     $ jsonpointer ptr.json a.json b.json
+    [1, 2, 3]
+    {"b": [1, 3, 4]}
+
+    # resolve with -f option
+    $ jsonpointer -f ptr.json a.json b.json
+    [1, 2, 3]
+    {"b": [1, 3, 4]}
+
+    # resolve with -e option for direct expression
+    $ jsonpointer -e "/a" a.json b.json
     [1, 2, 3]
     {"b": [1, 3, 4]}
