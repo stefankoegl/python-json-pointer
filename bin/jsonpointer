@@ -48,16 +48,20 @@ def resolve_files(args):
     if args.expression:
         ptr = args.expression
     elif args.pointer_file:
-        with open(args.pointer_file) as f:
-            content = f.read().strip()
-            # Handle JSON-encoded strings
-            if content.startswith('"') and content.endswith('"'):
-                try:
-                    ptr = json.loads(content)
-                except json.JSONDecodeError:
+        try:
+            with open(args.pointer_file) as f:
+                content = f.read().strip()
+                # Handle JSON-encoded strings
+                if content.startswith('"') and content.endswith('"'):
+                    try:
+                        ptr = json.loads(content)
+                    except json.JSONDecodeError:
+                        ptr = content
+                else:
                     ptr = content
-            else:
-                ptr = content
+        except FileNotFoundError:
+            print(f"Error: Pointer file '{args.pointer_file}' not found", file=sys.stderr)
+            sys.exit(1)
     else:
         sys.exit(1)  # This should never happen because the group is required
 
