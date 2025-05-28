@@ -219,7 +219,7 @@ class WrongInputTests(unittest.TestCase):
         # 'a' is not a valid list index
         doc = [0, 1, 2]
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/a')
-        
+
     def test_invalid_index_leading_zeros(self):
         # RFC 6901 specifies that array indices must not have leading zeros
         doc = [0, 1, 2]
