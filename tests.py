@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
-
 import copy
 import doctest
-import sys
 import unittest
 
 import jsonpointer
@@ -78,45 +75,33 @@ class SpecificationTests(unittest.TestCase):
 
     def test_str_and_repr(self):
         paths = [
-            ("", "", "JsonPointer({u}'')"),
-            ("/foo", "/foo", "JsonPointer({u}'/foo')"),
-            ("/foo/0", "/foo/0", "JsonPointer({u}'/foo/0')"),
-            ("/", "/", "JsonPointer({u}'/')"),
-            ("/a~1b", "/a~1b", "JsonPointer({u}'/a~1b')"),
-            ("/c%d", "/c%d", "JsonPointer({u}'/c%d')"),
-            ("/e^f", "/e^f", "JsonPointer({u}'/e^f')"),
-            ("/g|h", "/g|h", "JsonPointer({u}'/g|h')"),
-            ("/i\\j", "/i\\j", "JsonPointer({u}'/i\\\\j')"),
-            ("/k\"l", "/k\"l", "JsonPointer({u}'/k\"l')"),
-            ("/ ", "/ ", "JsonPointer({u}'/ ')"),
-            ("/m~0n", "/m~0n", "JsonPointer({u}'/m~0n')"),
+            ("", "", "JsonPointer('')"),
+            ("/foo", "/foo", "JsonPointer('/foo')"),
+            ("/foo/0", "/foo/0", "JsonPointer('/foo/0')"),
+            ("/", "/", "JsonPointer('/')"),
+            ("/a~1b", "/a~1b", "JsonPointer('/a~1b')"),
+            ("/c%d", "/c%d", "JsonPointer('/c%d')"),
+            ("/e^f", "/e^f", "JsonPointer('/e^f')"),
+            ("/g|h", "/g|h", "JsonPointer('/g|h')"),
+            ("/i\\j", "/i\\j", "JsonPointer('/i\\\\j')"),
+            ("/k\"l", "/k\"l", "JsonPointer('/k\"l')"),
+            ("/ ", "/ ", "JsonPointer('/ ')"),
+            ("/m~0n", "/m~0n", "JsonPointer('/m~0n')"),
         ]
         for path, ptr_str, ptr_repr in paths:
             ptr = JsonPointer(path)
             self.assertEqual(path, ptr.path)
-
-            if sys.version_info[0] == 2:
-                u_str = "u"
-            else:
-                u_str = ""
             self.assertEqual(ptr_str, str(ptr))
-            self.assertEqual(ptr_repr.format(u=u_str), repr(ptr))
+            self.assertEqual(ptr_repr, repr(ptr))
 
-        if sys.version_info[0] == 2:
-            path = "/\xee"
-            ptr_str = b"/\xee"
-            ptr_repr = "JsonPointer(u'/\\xee')"
-        else:
-            path = "/\xee"
-            ptr_str = "/\xee"
-            ptr_repr = "JsonPointer('/\xee')"
+        path = "/\xee"
+        ptr_str = "/\xee"
+        ptr_repr = "JsonPointer('/\xee')"
         ptr = JsonPointer(path)
         self.assertEqual(path, ptr.path)
-
         self.assertEqual(ptr_str, str(ptr))
         self.assertEqual(ptr_repr, repr(ptr))
 
-        # should not be unicode in Python 2
         self.assertIsInstance(str(ptr), str)
         self.assertIsInstance(repr(ptr), str)
 
