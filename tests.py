@@ -205,6 +205,13 @@ class WrongInputTests(unittest.TestCase):
         doc = [0, 1, 2]
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/a')
 
+    def test_invalid_index_leading_zeros(self):
+        # RFC 6901 specifies that array indices must not have leading zeros
+        doc = [0, 1, 2]
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, '/01')
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, '/00')
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, '/001')
+
     def test_oob(self):
         # this list does not have 10 members
         doc = [0, 1, 2]

@@ -152,7 +152,7 @@ class JsonPointer(object):
 
     # Array indices must not contain:
     # leading zeros, signs, spaces, decimals, etc
-    _RE_ARRAY_INDEX = re.compile('0|[1-9][0-9]*$')
+    _RE_ARRAY_INDEX = re.compile('^(?:0|[1-9][0-9]*)$')
     _RE_INVALID_ESCAPE = re.compile('(~[^01]|~$)')
 
     def __init__(self, pointer):
