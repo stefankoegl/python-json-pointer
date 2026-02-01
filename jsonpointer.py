@@ -230,7 +230,7 @@ class JsonPointer(object):
             if part == '-':
                 return part
 
-            if not JsonPointer._RE_ARRAY_INDEX.match(str(part)):
+            if not JsonPointer._RE_ARRAY_INDEX.fullmatch(str(part)):
                 raise JsonPointerException("'%s' is not a valid sequence index" % part)
 
             return int(part)
