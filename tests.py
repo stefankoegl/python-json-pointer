@@ -391,6 +391,35 @@ class AltTypesTests(unittest.TestCase):
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/root/1/2/3/4')
 
 
+class VerboseExceptionsTests(unittest.TestCase):
+
+    def setUp(self):
+        # Save original value and ensure verbose mode is on for each test
+        self._original = jsonpointer.VERBOSE_EXCEPTIONS
+        jsonpointer.VERBOSE_EXCEPTIONS = True
+
+    def tearDown(self):
+        jsonpointer.VERBOSE_EXCEPTIONS = self._original
+
+    def test_verbose_exception_includes_doc(self):
+        doc = {'foo': 1}
+        try:
+            resolve_pointer(doc, '/bar')
+            self.fail('Expected JsonPointerException')
+        except JsonPointerException as e:
+            self.assertIn(repr(doc), str(e))
+
+    def test_non_verbose_exception_excludes_doc(self):
+        doc = {'foo': 1}
+        jsonpointer.VERBOSE_EXCEPTIONS = False
+        try:
+            resolve_pointer(doc, '/bar')
+            self.fail('Expected JsonPointerException')
+        except JsonPointerException as e:
+            self.assertNotIn(repr(doc), str(e))
+            self.assertIn('bar', str(e))
+
+
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite(jsonpointer))
     return tests

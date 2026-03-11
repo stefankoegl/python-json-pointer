@@ -45,6 +45,10 @@ from itertools import tee, chain
 
 _nothing = object()
 
+# If True, exceptions include the doc content in the error message.
+# Set to False to suppress potentially large document content from exceptions.
+VERBOSE_EXCEPTIONS = True
+
 
 def set_pointer(doc, pointer, value, inplace=True):
     """Resolves a pointer against doc and sets the value of the target within doc.
@@ -271,7 +275,10 @@ class JsonPointer(object):
             return doc[part]
 
         except KeyError:
-            raise JsonPointerException("member '%s' not found in %s" % (part, doc))
+            if VERBOSE_EXCEPTIONS:
+                raise JsonPointerException("member '%s' not found in %s" % (part, doc))
+            else:
+                raise JsonPointerException("member '%s' not found" % (part,))
 
     def contains(self, ptr):
         """ Returns True if self contains the given ptr """
