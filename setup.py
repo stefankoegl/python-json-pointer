@@ -48,17 +48,18 @@ CLASSIFIERS = [
     'Topic :: Utilities',
 ]
 
-setup(name=PACKAGE,
-      version=VERSION,
-      description=DESCRIPTION,
-      long_description=long_description,
-      long_description_content_type="text/markdown",
-      author=AUTHOR,
-      author_email=EMAIL,
-      license=LICENSE,
-      url=WEBSITE,
-      py_modules=MODULES,
-      scripts=['bin/jsonpointer'],
-      classifiers=CLASSIFIERS,
-            python_requires='>=3.10',
-      )
+setup(
+    name=PACKAGE,
+    version=VERSION,
+    description=DESCRIPTION,
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    author=AUTHOR,
+    author_email=EMAIL,
+    license=LICENSE,
+    url=WEBSITE,
+    py_modules=MODULES,
+    scripts=['bin/jsonpointer'],
+    classifiers=CLASSIFIERS,
+    python_requires='>=3.10',
+)
