@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import copy
 import doctest
@@ -370,7 +369,7 @@ class AltTypesTests(unittest.TestCase):
             '/root/1/2': '3',
         }
 
-        for path, expected_value in iter(path_to_expected_value.items()):
+        for path, expected_value in path_to_expected_value.items():
             self.assertEqual(resolve_pointer(doc, path, default), expected_value)
 
     def test_mock_dict_returns_default(self):
@@ -382,7 +381,7 @@ class AltTypesTests(unittest.TestCase):
             '/x/y/z/d': default
         }
 
-        for path, expected_value in iter(path_to_expected_value.items()):
+        for path, expected_value in path_to_expected_value.items():
             self.assertEqual(resolve_pointer(doc, path, default), expected_value)
 
     def test_mock_dict_raises_key_error(self):

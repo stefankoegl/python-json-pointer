@@ -7,7 +7,7 @@ python-json-pointer
 ===================
 
 *python-json-pointer* is a Python library for resolving JSON pointers (`RFC
-6901 <http://tools.ietf.org/html/rfc6901>`_). Python 3.9+
+6901 <http://tools.ietf.org/html/rfc6901>`_). Python 3.10+
 and PyPy are supported.
 
 **Contents**
