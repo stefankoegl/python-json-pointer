@@ -3,6 +3,7 @@
 import copy
 import doctest
 import unittest
+from collections import OrderedDict
 
 import jsonpointer
 from jsonpointer import resolve_pointer, EndOfList, JsonPointerException, \
@@ -215,6 +216,24 @@ class WrongInputTests(unittest.TestCase):
     def test_invalid_escape(self):
         self.assertRaises(JsonPointerException, JsonPointer, '/foo/bar~2')
 
+    def test_ordereddict_member_not_found(self):
+        # Resolving a pointer to a non-existent key in an OrderedDict should
+        # raise JsonPointerException (not a bare KeyError or any other exception)
+        doc = OrderedDict([
+            ('$schema', 'http://json-schema.org/draft-07/schema#'),
+            ('$id', '/sports_field'),
+            ('title', 'Field'),
+            ('description', 'A sports field description.'),
+            ('type', 'object'),
+            ('properties', OrderedDict([
+                ('description', OrderedDict([
+                    ('description', 'Field description'),
+                    ('type', 'string'),
+                ])),
+            ])),
+        ])
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, '/src')
+        
     def test_leading_zero(self):
         doc = [0, 1, 2]
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/01')
