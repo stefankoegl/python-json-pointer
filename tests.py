@@ -216,6 +216,9 @@ class WrongInputTests(unittest.TestCase):
     def test_invalid_escape(self):
         self.assertRaises(JsonPointerException, JsonPointer, '/foo/bar~2')
 
+    def test_leading_zero(self):
+        doc = [0, 1, 2]
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, '/01')
 
 class ToLastTests(unittest.TestCase):
 
