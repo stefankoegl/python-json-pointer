@@ -219,6 +219,7 @@ class WrongInputTests(unittest.TestCase):
         doc = [0, 1, 2]
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/01')
 
+
 class ToLastTests(unittest.TestCase):
 
     def test_empty_path(self):
