@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # python-json-pointer - An implementation of the JSON Pointer syntax
 # https://github.com/stefankoegl/python-json-pointer
 #
@@ -34,7 +32,7 @@
 
 # Will be parsed by setup.py to determine package metadata
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
-__version__ = '3.0.0'
+__version__ = '3.1.0'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
@@ -136,7 +134,7 @@ class JsonPointerException(Exception):
     pass
 
 
-class EndOfList(object):
+class EndOfList:
     """Result of accessing element "-" of a list"""
 
     def __init__(self, list_):
@@ -147,7 +145,7 @@ class EndOfList(object):
                                      lst=repr(self.list_))
 
 
-class JsonPointer(object):
+class JsonPointer:
     """A JSON Pointer that can reference parts of a JSON document"""
 
     # Array indices must not contain:
@@ -294,7 +292,7 @@ class JsonPointer(object):
         except:  # noqa E722
             raise JsonPointerException("Invalid suffix")
 
-    def __truediv__(self, suffix):  # Python 3
+    def __truediv__(self, suffix):
         return self.join(suffix)
 
     @property

@@ -6,11 +6,11 @@ help:
 	@echo " - coverage: run tests with coverage"
 	@echo
 	@echo "To install jsonpointer, type"
-	@echo "  python setup.py install"
+	@echo "  python3 setup.py install"
 	@echo
 
 test:
-	python -munittest
+	python3 -munittest
 
 coverage:
 	coverage run --source=jsonpointer tests.py
