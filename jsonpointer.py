@@ -223,6 +223,9 @@ class JsonPointer:
         if isinstance(doc, Mapping):
             return part
 
+        elif isinstance(doc, str):
+            raise JsonPointerException("Cannot apply token '%s' to non-container type %s" % (part, type(doc)))
+
         elif isinstance(doc, Sequence):
 
             if part == '-':
