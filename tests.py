@@ -192,6 +192,31 @@ class ComparisonTests(unittest.TestCase):
         ptr12e = self.ptr1 / ["a", "b"]
         self.assertEqual(ptr12e.path, "/a/b/c/a/b")
 
+    def test_join_subclass(self):
+        class Pointer(JsonPointer):
+            pass
+
+        class OtherPointer(JsonPointer):
+            pass
+
+        ptr = Pointer("/a~1b")
+        suffixes = [JsonPointer("/m~0n"), Pointer("/m~0n"),
+                    OtherPointer("/m~0n"), "/m~0n", ["m~n"]]
+        for suffix in suffixes:
+            with self.subTest(suffix=suffix):
+                joined = ptr.join(suffix)
+                self.assertIs(type(joined), Pointer)
+                self.assertEqual(joined.path, "/a~1b/m~0n")
+        self.assertEqual(ptr.path, "/a~1b")
+
+    def test_join_magic_subclass(self):
+        class Pointer(JsonPointer):
+            pass
+
+        ptr = Pointer("/a") / JsonPointer("/b") / ["c"]
+        self.assertIs(type(ptr), Pointer)
+        self.assertEqual(ptr.path, "/a/b/c")
+
 
 class WrongInputTests(unittest.TestCase):
 
