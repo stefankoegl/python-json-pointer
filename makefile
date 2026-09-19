@@ -13,5 +13,5 @@ test:
 	python3 -munittest
 
 coverage:
-	coverage run --source=jsonpointer tests.py
+	coverage run --source=jsonpointer -m unittest
 	coverage report -m
