@@ -219,6 +219,13 @@ class WrongInputTests(unittest.TestCase):
         doc = [0, 1, 2]
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/01')
 
+    def test_string_not_indexable(self):
+        doc = {"foo": "should-not-be-indexable"}
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, "/foo/0")
+
+        ptr = JsonPointer("/foo/0")
+        self.assertRaises(JsonPointerException, ptr.resolve, doc)
+
 
 class ToLastTests(unittest.TestCase):
 
