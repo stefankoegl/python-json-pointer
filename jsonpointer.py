@@ -291,7 +291,7 @@ class JsonPointer:
         else:
             suffix_parts = suffix
         try:
-            return JsonPointer.from_parts(chain(self.parts, suffix_parts))
+            return self.__class__.from_parts(chain(self.parts, suffix_parts))
         except:  # noqa E722
             raise JsonPointerException("Invalid suffix")
 
