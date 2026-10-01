@@ -2,6 +2,10 @@
 
 import copy
 import doctest
+import os
+import subprocess
+import sys
+import tempfile
 import unittest
 
 import jsonpointer
@@ -399,6 +403,70 @@ class AltTypesTests(unittest.TestCase):
         doc = self.mdict
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/foo')
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/root/1/2/3/4')
+
+
+class CommandLineTests(unittest.TestCase):
+    """ Tests the jsonpointer command line utility """
+
+    ROOT = os.path.dirname(os.path.abspath(__file__))
+    SCRIPT = os.path.join(ROOT, 'bin', 'jsonpointer')
+
+    A_OUT = '[1, 2, 3]\n'
+    B_OUT = '{"b": [1, 3, 4]}\n'
+
+    def setUp(self):
+        tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(tmpdir.cleanup)
+        self.dir = tmpdir.name
+
+        self._write('a.json', '{ "a": [1, 2, 3] }')
+        self._write('b.json', '{ "a": {"b": [1, 3, 4]}, "b": 1 }')
+        self._write('ptr.txt', '/a\n')
+
+    def _write(self, name, content):
+        with open(os.path.join(self.dir, name), 'w') as f:
+            f.write(content)
+
+    def _run(self, *args):
+        env = dict(os.environ, PYTHONPATH=self.ROOT)
+        return subprocess.run([sys.executable, self.SCRIPT] + list(args),
+                              cwd=self.dir, env=env, capture_output=True,
+                              text=True)
+
+    def test_positional_pointer(self):
+        proc = self._run('/a', 'a.json', 'b.json')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.stdout, self.A_OUT + self.B_OUT)
+
+    def test_positional_pointer_single_file(self):
+        proc = self._run('/a', 'a.json')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.stdout, self.A_OUT)
+
+    def test_pointer_file(self):
+        proc = self._run('-f', 'ptr.txt', 'a.json', 'b.json')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.stdout, self.A_OUT + self.B_OUT)
+
+    def test_pointer_file_single_file(self):
+        proc = self._run('-f', 'ptr.txt', 'a.json')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.stdout, self.A_OUT)
+
+    def test_pointer_option(self):
+        proc = self._run('-p', '/a', 'a.json', 'b.json')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.stdout, self.A_OUT + self.B_OUT)
+
+    def test_no_pointer(self):
+        proc = self._run('a.json')
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn('a JSON pointer is required', proc.stderr)
+
+    def test_pointer_and_pointer_file_exclusive(self):
+        proc = self._run('-p', '/a', '-f', 'ptr.txt', 'a.json')
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn('not allowed with', proc.stderr)
 
 
 def load_tests(loader, tests, ignore):

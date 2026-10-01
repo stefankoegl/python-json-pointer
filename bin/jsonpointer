@@ -10,17 +10,21 @@ import jsonpointer
 parser = argparse.ArgumentParser(
     description='Resolve a JSON pointer on JSON files')
 
-# Accept pointer as argument or as file
-ptr_group = parser.add_mutually_exclusive_group(required=True)
+# Accept pointer as option, as file or as first positional argument
+ptr_group = parser.add_mutually_exclusive_group()
 
 ptr_group.add_argument('-f', '--pointer-file', type=argparse.FileType('r'),
                        nargs='?',
                        help='File containing a JSON pointer expression')
 
-ptr_group.add_argument('POINTER', type=str, nargs='?',
+ptr_group.add_argument('-p', '--pointer', type=str,
                        help='A JSON pointer expression')
 
-parser.add_argument('FILE', type=argparse.FileType('r'), nargs='+',
+parser.add_argument('POINTER', type=str, nargs='?',
+                    help='A JSON pointer expression (if neither -f nor -p '
+                         'is given)')
+
+parser.add_argument('FILE', type=str, nargs='+',
                     help='Files for which the pointer should be resolved')
 parser.add_argument('--indent', type=int, default=None,
                     help='Indent output by n spaces')
@@ -36,24 +40,42 @@ def main():
 
 
 def parse_pointer(args):
-    if args.POINTER:
-        ptr = args.POINTER
-    elif args.pointer_file:
-        ptr = args.pointer_file.read().strip()
-    else:
-        parser.print_usage()
-        sys.exit(1)
+    """ Return the pointer and the list of files to resolve it on
 
-    return ptr
+    If the pointer is given via -f or -p, a POINTER positional argument is
+    actually the first file. """
+    files = args.FILE
+
+    if args.pointer is not None or args.pointer_file is not None:
+        if args.POINTER is not None:
+            files = [args.POINTER] + files
+
+        if args.pointer is not None:
+            ptr = args.pointer
+        else:
+            ptr = args.pointer_file.read().strip()
+
+    elif args.POINTER is not None:
+        ptr = args.POINTER
+
+    else:
+        parser.error('a JSON pointer is required (POINTER, -p or -f)')
+
+    return ptr, files
 
 
 def resolve_files():
     """ Resolve a JSON pointer on JSON files """
     args = parser.parse_args()
 
-    ptr = parse_pointer(args)
+    ptr, files = parse_pointer(args)
 
-    for f in args.FILE:
+    for name in files:
+        try:
+            f = argparse.FileType('r')(name)
+        except argparse.ArgumentTypeError as e:
+            parser.error(str(e))
+
         doc = json.load(f)
         try:
             result = jsonpointer.resolve_pointer(doc, ptr)
