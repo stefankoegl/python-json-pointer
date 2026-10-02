@@ -209,10 +209,15 @@ class JsonPointer:
 
         (parent, part) = self.to_last(doc)
 
-        if isinstance(parent, Sequence) and part == '-':
+        if isinstance(parent, str):
+            raise JsonPointerException("Cannot set value in a string")
+        elif isinstance(parent, Sequence) and part == '-':
             parent.append(value)
         else:
-            parent[part] = value
+            try:
+                parent[part] = value
+            except (TypeError, IndexError) as e:
+                raise JsonPointerException("Invalid assignment target: %s" % (e,))
 
         return doc
 
