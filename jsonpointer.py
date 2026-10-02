@@ -239,7 +239,10 @@ class JsonPointer:
             if not JsonPointer._RE_ARRAY_INDEX.fullmatch(str(part)):
                 raise JsonPointerException("'%s' is not a valid sequence index" % part)
 
-            return int(part)
+            try:
+                return int(part)
+            except ValueError as e:
+                raise JsonPointerException("Invalid sequence index: %s" % (e,))
 
         elif hasattr(doc, '__getitem__'):
             # Allow indexing via ducktyping

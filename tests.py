@@ -2,6 +2,7 @@
 
 import copy
 import doctest
+import sys
 import unittest
 
 import jsonpointer
@@ -250,6 +251,47 @@ class WrongInputTests(unittest.TestCase):
 
         ptr = JsonPointer("/foo/0")
         self.assertRaises(JsonPointerException, ptr.resolve, doc)
+
+
+@unittest.skipUnless(hasattr(sys, 'get_int_max_str_digits'),
+                     'Integer string conversion limits are not available')
+class LargeIndexTests(unittest.TestCase):
+
+    def setUp(self):
+        limit = sys.get_int_max_str_digits()
+        if not limit:
+            self.skipTest('Integer string conversion limit is disabled')
+        self.token = '1' * (limit + 1)
+        self.pointer = '/' + self.token
+
+    def test_resolve_large_index(self):
+        self.assertRaises(JsonPointerException, resolve_pointer,
+                          [0], self.pointer)
+
+    def test_resolve_large_index_default(self):
+        default = object()
+        self.assertIs(resolve_pointer([0], self.pointer, default), default)
+        self.assertIs(resolve_pointer({'items': [0]},
+                                      '/items' + self.pointer, default),
+                      default)
+
+    def test_to_last_large_index(self):
+        self.assertRaises(JsonPointerException,
+                          JsonPointer(self.pointer).to_last, [0])
+
+    def test_set_large_index(self):
+        for inplace in (True, False):
+            with self.subTest(inplace=inplace):
+                doc = [0]
+                self.assertRaises(JsonPointerException, set_pointer,
+                                  doc, self.pointer, 1, inplace=inplace)
+                self.assertEqual(doc, [0])
+
+    def test_large_numeric_object_member(self):
+        doc = {self.token: 'old'}
+        self.assertEqual(resolve_pointer(doc, self.pointer), 'old')
+        set_pointer(doc, self.pointer, 'new')
+        self.assertEqual(doc, {self.token: 'new'})
 
 
 class ToLastTests(unittest.TestCase):
