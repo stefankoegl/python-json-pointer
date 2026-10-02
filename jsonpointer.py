@@ -209,10 +209,15 @@ class JsonPointer:
 
         (parent, part) = self.to_last(doc)
 
-        if isinstance(parent, Sequence) and part == '-':
-            parent.append(value)
-        else:
-            parent[part] = value
+        try:
+            if isinstance(parent, Sequence) and part == '-':
+                parent.append(value)
+            else:
+                parent[part] = value
+        except IndexError:
+            raise JsonPointerException("index '%s' is out of bounds" % (part,))
+        except (TypeError, AttributeError):
+            raise JsonPointerException("Cannot set token '%s' on type %s" % (part, type(parent)))
 
         return doc
 

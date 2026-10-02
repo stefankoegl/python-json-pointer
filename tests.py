@@ -271,6 +271,28 @@ class ToLastTests(unittest.TestCase):
 
 class SetTests(unittest.TestCase):
 
+    def test_invalid_assignment_target(self):
+        targets = ["abc", b"abc", (1, 2), 42, None]
+        for target in targets:
+            for token in ["0", "-"]:
+                for inplace in [True, False]:
+                    for doc, path in [(target, "/" + token),
+                                      ({"foo": target}, "/foo/" + token)]:
+                        with self.subTest(doc=doc, path=path, inplace=inplace):
+                            self.assertRaises(JsonPointerException, set_pointer,
+                                              doc, path, 42, inplace=inplace)
+
+    def test_assignment_out_of_bounds(self):
+        for target, token in [([], "0"), ([1, 2], "2"), ([1, 2], "5")]:
+            for inplace in [True, False]:
+                for doc, path in [(target, "/" + token),
+                                  ({"foo": target}, "/foo/" + token)]:
+                    original = copy.deepcopy(doc)
+                    with self.subTest(doc=doc, path=path, inplace=inplace):
+                        self.assertRaisesRegex(JsonPointerException, "out of bounds",
+                                               JsonPointer(path).set, doc, 42, inplace=inplace)
+                        self.assertEqual(doc, original)
+
     def test_set(self):
         doc = {
             "foo": ["bar", "baz"],
