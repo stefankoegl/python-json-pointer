@@ -209,7 +209,7 @@ class JsonPointer:
 
         (parent, part) = self.to_last(doc)
 
-if isinstance(parent, str):
+        if isinstance(parent, str):
             raise JsonPointerException("Cannot set value in a string")
         elif isinstance(parent, Sequence) and part == '-':
             parent.append(value)
