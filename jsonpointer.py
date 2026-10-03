@@ -53,7 +53,10 @@ except ImportError:  # Python 3
     from collections import Mapping, Sequence
 
 from itertools import tee
-from requests.utils import unquote
+try:
+    from urllib.parse import unquote
+except ImportError:  # Python 2
+    from urllib import unquote
 import re
 import copy
 
