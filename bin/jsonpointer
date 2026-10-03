@@ -61,6 +61,13 @@ def parse_pointer(args):
     else:
         parser.error('a JSON pointer is required (POINTER, -p or -f)')
 
+    # Catches e.g. `jsonpointer a.json b.json`, where the pointer was omitted
+    # and the first file would otherwise be used as the pointer
+    try:
+        jsonpointer.JsonPointer(ptr)
+    except jsonpointer.JsonPointerException as e:
+        parser.error('invalid JSON pointer %r: %s' % (ptr, e))
+
     return ptr, files
 
 

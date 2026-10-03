@@ -529,6 +529,23 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 2)
         self.assertIn('a JSON pointer is required', proc.stderr)
 
+    def test_missing_pointer_multiple_files(self):
+        proc = self._run('a.json', 'b.json')
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("invalid JSON pointer 'a.json'", proc.stderr)
+        self.assertEqual(proc.stdout, '')
+
+    def test_invalid_pointer_file(self):
+        self._write('bad.txt', 'a\n')
+        proc = self._run('-f', 'bad.txt', 'a.json')
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("invalid JSON pointer 'a'", proc.stderr)
+
+    def test_empty_pointer(self):
+        proc = self._run('', 'a.json')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.stdout, '{"a": [1, 2, 3]}\n')
+
     def test_pointer_and_pointer_file_exclusive(self):
         proc = self._run('-p', '/a', '-f', 'ptr.txt', 'a.json')
         self.assertEqual(proc.returncode, 2)
