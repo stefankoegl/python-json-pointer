@@ -196,6 +196,31 @@ class ComparisonTests(unittest.TestCase):
         ptr12e = self.ptr1 / ["a", "b"]
         self.assertEqual(ptr12e.path, "/a/b/c/a/b")
 
+    def test_join_subclass(self):
+        class Pointer(JsonPointer):
+            pass
+
+        class OtherPointer(JsonPointer):
+            pass
+
+        ptr = Pointer("/a~1b")
+        suffixes = [JsonPointer("/m~0n"), Pointer("/m~0n"),
+                    OtherPointer("/m~0n"), "/m~0n", ["m~n"]]
+        for suffix in suffixes:
+            with self.subTest(suffix=suffix):
+                joined = ptr.join(suffix)
+                self.assertIs(type(joined), Pointer)
+                self.assertEqual(joined.path, "/a~1b/m~0n")
+        self.assertEqual(ptr.path, "/a~1b")
+
+    def test_join_magic_subclass(self):
+        class Pointer(JsonPointer):
+            pass
+
+        ptr = Pointer("/a") / JsonPointer("/b") / ["c"]
+        self.assertIs(type(ptr), Pointer)
+        self.assertEqual(ptr.path, "/a/b/c")
+
 
 class WrongInputTests(unittest.TestCase):
 
@@ -229,6 +254,47 @@ class WrongInputTests(unittest.TestCase):
 
         ptr = JsonPointer("/foo/0")
         self.assertRaises(JsonPointerException, ptr.resolve, doc)
+
+
+@unittest.skipUnless(hasattr(sys, 'get_int_max_str_digits'),
+                     'Integer string conversion limits are not available')
+class LargeIndexTests(unittest.TestCase):
+
+    def setUp(self):
+        limit = sys.get_int_max_str_digits()
+        if not limit:
+            self.skipTest('Integer string conversion limit is disabled')
+        self.token = '1' * (limit + 1)
+        self.pointer = '/' + self.token
+
+    def test_resolve_large_index(self):
+        self.assertRaises(JsonPointerException, resolve_pointer,
+                          [0], self.pointer)
+
+    def test_resolve_large_index_default(self):
+        default = object()
+        self.assertIs(resolve_pointer([0], self.pointer, default), default)
+        self.assertIs(resolve_pointer({'items': [0]},
+                                      '/items' + self.pointer, default),
+                      default)
+
+    def test_to_last_large_index(self):
+        self.assertRaises(JsonPointerException,
+                          JsonPointer(self.pointer).to_last, [0])
+
+    def test_set_large_index(self):
+        for inplace in (True, False):
+            with self.subTest(inplace=inplace):
+                doc = [0]
+                self.assertRaises(JsonPointerException, set_pointer,
+                                  doc, self.pointer, 1, inplace=inplace)
+                self.assertEqual(doc, [0])
+
+    def test_large_numeric_object_member(self):
+        doc = {self.token: 'old'}
+        self.assertEqual(resolve_pointer(doc, self.pointer), 'old')
+        set_pointer(doc, self.pointer, 'new')
+        self.assertEqual(doc, {self.token: 'new'})
 
 
 class ToLastTests(unittest.TestCase):
@@ -468,6 +534,33 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 2)
         self.assertIn('not allowed with', proc.stderr)
 
+class VerboseExceptionsTests(unittest.TestCase):
+
+    def setUp(self):
+        # Save original value and ensure verbose mode is on for each test
+        self._original = jsonpointer.VERBOSE_EXCEPTIONS
+        jsonpointer.VERBOSE_EXCEPTIONS = True
+
+    def tearDown(self):
+        jsonpointer.VERBOSE_EXCEPTIONS = self._original
+
+    def test_verbose_exception_includes_doc(self):
+        doc = {'foo': 1}
+        try:
+            resolve_pointer(doc, '/bar')
+            self.fail('Expected JsonPointerException')
+        except JsonPointerException as e:
+            self.assertIn(repr(doc), str(e))
+
+    def test_non_verbose_exception_excludes_doc(self):
+        doc = {'foo': 1}
+        jsonpointer.VERBOSE_EXCEPTIONS = False
+        try:
+            resolve_pointer(doc, '/bar')
+            self.fail('Expected JsonPointerException')
+        except JsonPointerException as e:
+            self.assertNotIn(repr(doc), str(e))
+            self.assertIn('bar', str(e))
 
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite(jsonpointer))

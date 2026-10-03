@@ -43,6 +43,10 @@ from itertools import tee, chain
 
 _nothing = object()
 
+# If True, exceptions include the doc content in the error message.
+# Set to False to suppress potentially large document content from exceptions.
+VERBOSE_EXCEPTIONS = True
+
 
 def set_pointer(doc, pointer, value, inplace=True):
     """Resolves a pointer against doc and sets the value of the target within doc.
@@ -209,10 +213,15 @@ class JsonPointer:
 
         (parent, part) = self.to_last(doc)
 
-        if isinstance(parent, Sequence) and part == '-':
+        if isinstance(parent, str):
+            raise JsonPointerException("Cannot set value in a string")
+        elif isinstance(parent, Sequence) and part == '-':
             parent.append(value)
         else:
-            parent[part] = value
+            try:
+                parent[part] = value
+            except (TypeError, IndexError) as e:
+                raise JsonPointerException("Invalid assignment target: %s" % (e,))
 
         return doc
 
@@ -234,7 +243,10 @@ class JsonPointer:
             if not JsonPointer._RE_ARRAY_INDEX.fullmatch(str(part)):
                 raise JsonPointerException("'%s' is not a valid sequence index" % part)
 
-            return int(part)
+            try:
+                return int(part)
+            except ValueError as e:
+                raise JsonPointerException("Invalid sequence index: %s" % (e,))
 
         elif hasattr(doc, '__getitem__'):
             # Allow indexing via ducktyping
@@ -272,7 +284,10 @@ class JsonPointer:
             return doc[part]
 
         except KeyError:
-            raise JsonPointerException("member '%s' not found in %s" % (part, doc))
+            if VERBOSE_EXCEPTIONS:
+                raise JsonPointerException("member '%s' not found in %s" % (part, doc))
+            else:
+                raise JsonPointerException("member '%s' not found" % (part,))
 
     def contains(self, ptr):
         """ Returns True if self contains the given ptr """
@@ -291,7 +306,7 @@ class JsonPointer:
         else:
             suffix_parts = suffix
         try:
-            return JsonPointer.from_parts(chain(self.parts, suffix_parts))
+            return self.__class__.from_parts(chain(self.parts, suffix_parts))
         except:  # noqa E722
             raise JsonPointerException("Invalid suffix")
 
