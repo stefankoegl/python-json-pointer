@@ -233,7 +233,7 @@ class WrongInputTests(unittest.TestCase):
             ])),
         ])
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/src')
-        
+
     def test_leading_zero(self):
         doc = [0, 1, 2]
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/01')
