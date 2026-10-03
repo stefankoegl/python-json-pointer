@@ -534,6 +534,7 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 2)
         self.assertIn('not allowed with', proc.stderr)
 
+
 class VerboseExceptionsTests(unittest.TestCase):
 
     def setUp(self):
@@ -561,6 +562,7 @@ class VerboseExceptionsTests(unittest.TestCase):
         except JsonPointerException as e:
             self.assertNotIn(repr(doc), str(e))
             self.assertIn('bar', str(e))
+
 
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite(jsonpointer))
