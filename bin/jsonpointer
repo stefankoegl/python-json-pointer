@@ -34,8 +34,11 @@ parser.add_argument('-v', '--version', action='version',
 
 def main():
     try:
-        resolve_files()
+        ok = resolve_files()
     except KeyboardInterrupt:
+        sys.exit(1)
+
+    if not ok:
         sys.exit(1)
 
 
@@ -72,10 +75,14 @@ def parse_pointer(args):
 
 
 def resolve_files():
-    """ Resolve a JSON pointer on JSON files """
+    """ Resolve a JSON pointer on JSON files
+
+    Returns False if the pointer could not be resolved on at least one
+    file. """
     args = parser.parse_args()
 
     ptr, files = parse_pointer(args)
+    ok = True
 
     for name in files:
         try:
@@ -89,6 +96,9 @@ def resolve_files():
             print(json.dumps(result, indent=args.indent))
         except jsonpointer.JsonPointerException as e:
             print('Could not resolve pointer: %s' % str(e), file=sys.stderr)
+            ok = False
+
+    return ok
 
 
 if __name__ == "__main__":

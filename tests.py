@@ -546,6 +546,20 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(proc.stdout, '{"a": [1, 2, 3]}\n')
 
+    def test_unresolvable_pointer(self):
+        proc = self._run('/x', 'a.json')
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn('Could not resolve pointer', proc.stderr)
+        self.assertEqual(proc.stdout, '')
+
+    def test_unresolvable_pointer_in_one_file(self):
+        # /b resolves in b.json only; a.json is still reported but b.json
+        # is processed
+        proc = self._run('/b', 'a.json', 'b.json')
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn('Could not resolve pointer', proc.stderr)
+        self.assertEqual(proc.stdout, '1\n')
+
     def test_pointer_and_pointer_file_exclusive(self):
         proc = self._run('-p', '/a', '-f', 'ptr.txt', 'a.json')
         self.assertEqual(proc.returncode, 2)
