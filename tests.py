@@ -373,6 +373,59 @@ class SetTests(unittest.TestCase):
 
         self.assertRaises(JsonPointerException, set_pointer, doc, "", 9)
 
+    def test_set_create(self):
+        doc = {}
+        set_pointer(doc, "/cat/name", "whiskers", create=True)
+        self.assertEqual(doc, {"cat": {"name": "whiskers"}})
+
+        doc = {"cities": {"NewYork": "0"}}
+        set_pointer(doc, "/cities/LosAngeles/population", "4mln", create=True)
+        self.assertEqual(doc, {"cities": {
+            "NewYork": "0",
+            "LosAngeles": {"population": "4mln"},
+        }})
+
+        # existing members are kept
+        set_pointer(doc, "/cities/LosAngeles/area", 1302, create=True)
+        self.assertEqual(doc["cities"]["LosAngeles"],
+                         {"population": "4mln", "area": 1302})
+
+    def test_set_create_not_inplace(self):
+        doc = {"a": {}}
+        newdoc = set_pointer(doc, "/a/b/c", 1, inplace=False, create=True)
+        self.assertEqual(newdoc, {"a": {"b": {"c": 1}}})
+        self.assertEqual(doc, {"a": {}})
+
+    def test_set_create_list(self):
+        doc = {"foo": []}
+        set_pointer(doc, "/foo/-/bar", 1, create=True)
+        self.assertEqual(doc, {"foo": [{"bar": 1}]})
+
+        set_pointer(doc, "/foo/1/bar", 2, create=True)
+        self.assertEqual(doc, {"foo": [{"bar": 1}, {"bar": 2}]})
+
+        set_pointer(doc, "/foo/0/baz", 3, create=True)
+        self.assertEqual(doc, {"foo": [{"bar": 1, "baz": 3}, {"bar": 2}]})
+
+        set_pointer(doc, "/foo/2", 4, create=True)
+        self.assertEqual(doc, {"foo": [{"bar": 1, "baz": 3}, {"bar": 2}, 4]})
+
+    def test_set_create_invalid(self):
+        doc = {"foo": [1], "s": "str"}
+        # indices past the end of a list can't be created
+        self.assertRaises(JsonPointerException, set_pointer, doc,
+                          "/foo/5/bar", 1, create=True)
+        # nothing can be created inside a string
+        self.assertRaises(JsonPointerException, set_pointer, doc,
+                          "/s/bar/baz", 1, create=True)
+        self.assertEqual(doc, {"foo": [1], "s": "str"})
+
+    def test_set_create_off_by_default(self):
+        doc = {}
+        self.assertRaises(JsonPointerException, set_pointer, doc,
+                          "/cat/name", "whiskers")
+        self.assertEqual(doc, {})
+
 
 class AltTypesTests(unittest.TestCase):
     class Node(object):

@@ -48,11 +48,16 @@ _nothing = object()
 VERBOSE_EXCEPTIONS = True
 
 
-def set_pointer(doc, pointer, value, inplace=True):
+def set_pointer(doc, pointer, value, inplace=True, create=False):
     """Resolves a pointer against doc and sets the value of the target within doc.
 
     With inplace set to true, doc is modified as long as pointer is not the
     root.
+
+    With create set to true, missing intermediate members are created as
+    dicts instead of raising a JsonPointerException. A missing intermediate
+    array element can be created by referencing the end of the array, either
+    with "-" or with an index equal to the length of the array.
 
     >>> obj = {'foo': {'anArray': [ {'prop': 44}], 'another prop': {'baz': 'A string' }}}
 
@@ -68,10 +73,14 @@ def set_pointer(doc, pointer, value, inplace=True):
     >>> set_pointer(obj, '/foo/a%20b', 'x') == \
     {'foo': {'a%20b': 'x' }}
     True
+
+    >>> set_pointer({}, '/cat/name', 'whiskers', create=True) == \
+    {'cat': {'name': 'whiskers'}}
+    True
     """
 
     pointer = JsonPointer(pointer)
-    return pointer.set(doc, value, inplace)
+    return pointer.set(doc, value, inplace, create)
 
 
 def resolve_pointer(doc, pointer, default=_nothing):
@@ -200,8 +209,11 @@ class JsonPointer:
 
     get = resolve
 
-    def set(self, doc, value, inplace=True):
-        """Resolve the pointer against the doc and replace the target with value."""
+    def set(self, doc, value, inplace=True, create=False):
+        """Resolve the pointer against the doc and replace the target with value.
+
+        With create set to true, missing intermediate members are created as
+        dicts (see set_pointer)."""
 
         if len(self.parts) == 0:
             if inplace:
@@ -211,7 +223,52 @@ class JsonPointer:
         if not inplace:
             doc = copy.deepcopy(doc)
 
-        (parent, part) = self.to_last(doc)
+        if create:
+            parent = doc
+            for i, part in enumerate(self.parts[:-1]):
+                part = self._get_create_part(parent, part)
+                if self._is_missing(parent, part):
+                    # Everything below this point is new, so build the
+                    # missing structure detached and attach it in one step.
+                    # This leaves doc unchanged if anything goes wrong.
+                    child = value
+                    for missing in reversed(self.parts[i + 1:]):
+                        child = {missing: child}
+                    self._set_child(parent, part, child)
+                    return doc
+                parent = self.walk(parent, part)
+            part = self._get_create_part(parent, self.parts[-1])
+        else:
+            (parent, part) = self.to_last(doc)
+
+        self._set_child(parent, part, value)
+        return doc
+
+    @classmethod
+    def _get_create_part(cls, doc, part):
+        """Like get_part, but maps an index just past the end of a sequence
+        to "-" so that it is appended"""
+
+        part = cls.get_part(doc, part)
+        if isinstance(doc, Sequence) and part == len(doc):
+            return '-'
+        return part
+
+    @staticmethod
+    def _is_missing(doc, part):
+        """Returns True if part does not exist in doc but could be added"""
+
+        if isinstance(doc, Mapping):
+            return part not in doc
+
+        if isinstance(doc, Sequence) and not isinstance(doc, str):
+            return part == '-'
+
+        return False
+
+    @staticmethod
+    def _set_child(parent, part, value):
+        """Sets parent[part] to value, appending for the end of a sequence"""
 
         if isinstance(parent, str):
             raise JsonPointerException("Cannot set value in a string")
@@ -222,8 +279,6 @@ class JsonPointer:
                 parent[part] = value
             except (TypeError, IndexError) as e:
                 raise JsonPointerException("Invalid assignment target: %s" % (e,))
-
-        return doc
 
     @classmethod
     def get_part(cls, doc, part):
