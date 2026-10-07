@@ -55,6 +55,22 @@ to create a copy and modify the copy instead:
     >>> obj
     {'foo': {'another prop': {'baz': 'A string'}, 'anArray': [{'prop': 44}]}}
 
+By default, setting a value below a member that does not exist raises a
+``JsonPointerException``. Pass ``create=True`` to create missing members as
+dicts instead. Missing list elements can be created by referencing the end of
+the list, either with ``-`` or with an index equal to the length of the list:
+
+    >>> from jsonpointer import set_pointer
+    >>> obj = {}
+
+    >>> set_pointer(obj, '/cat/name', 'whiskers', create=True)
+    {'cat': {'name': 'whiskers'}}
+
+    >>> obj = {'cats': []}
+
+    >>> set_pointer(obj, '/cats/-/name', 'whiskers', create=True)
+    {'cats': [{'name': 'whiskers'}]}
+
 The ``JsonPointer`` class wraps a (string) path and can be used to access the
 same path on several objects.
 
