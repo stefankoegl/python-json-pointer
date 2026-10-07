@@ -560,6 +560,11 @@ class CommandLineTests(unittest.TestCase):
         self.assertIn('Could not resolve pointer', proc.stderr)
         self.assertEqual(proc.stdout, '1\n')
 
+    def test_pointer_file_requires_value(self):
+        proc = self._run('-f', '-p', '/a', 'a.json')
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn('expected one argument', proc.stderr)
+
     def test_pointer_and_pointer_file_exclusive(self):
         proc = self._run('-p', '/a', '-f', 'ptr.txt', 'a.json')
         self.assertEqual(proc.returncode, 2)

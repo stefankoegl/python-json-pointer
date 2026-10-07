@@ -6,8 +6,7 @@ that can be used to resolve a JSON pointers on JSON files.
 
 The program has the following usage ::
 
-    usage: jsonpointer [-h] [-f [POINTER_FILE] | -p POINTER] [--indent INDENT]
-                       [-v]
+    usage: jsonpointer [-h] [-f POINTER_FILE | -p POINTER] [--indent INDENT] [-v]
                        [POINTER] FILE [FILE ...]
 
     Resolve a JSON pointer on JSON files
@@ -19,7 +18,7 @@ The program has the following usage ::
 
     options:
       -h, --help            show this help message and exit
-      -f [POINTER_FILE], --pointer-file [POINTER_FILE]
+      -f POINTER_FILE, --pointer-file POINTER_FILE
                             File containing a JSON pointer expression
       -p POINTER, --pointer POINTER
                             A JSON pointer expression
