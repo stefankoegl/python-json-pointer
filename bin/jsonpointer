@@ -55,7 +55,8 @@ def parse_pointer(args):
         if args.pointer is not None:
             ptr = args.pointer
         else:
-            ptr = args.pointer_file.read().strip()
+            # 2026-10-11: Trim file line endings without changing member names.
+            ptr = args.pointer_file.read().rstrip("\r\n")
 
     elif args.POINTER is not None:
         ptr = args.POINTER
