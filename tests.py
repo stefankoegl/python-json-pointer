@@ -514,6 +514,17 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(proc.stdout, self.A_OUT + self.B_OUT)
 
+    # 2026-10-11: A pointer file's trailing spaces are part of its member name.
+    def test_pointer_file_preserves_member_whitespace(self):
+        self._write('space.json', '{"a ": "expected", "a": "wrong"}')
+        for newline in ('', '\n', '\r\n'):
+            with self.subTest(newline=newline):
+                with open(os.path.join(self.dir, 'space.txt'), 'w', newline='') as f:
+                    f.write('/a ' + newline)
+                proc = self._run('-f', 'space.txt', 'space.json')
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                self.assertEqual(proc.stdout, '"expected"\n')
+
     def test_pointer_file_single_file(self):
         proc = self._run('-f', 'ptr.txt', 'a.json')
         self.assertEqual(proc.returncode, 0, proc.stderr)
