@@ -3,7 +3,7 @@ python-json-pointer
 
 [![PyPI version](https://img.shields.io/pypi/v/jsonpointer.svg)](https://pypi.python.org/pypi/jsonpointer/)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/jsonpointer.svg)](https://pypi.python.org/pypi/jsonpointer/)
-[![Coverage Status](https://coveralls.io/repos/stefankoegl/python-json-pointer/badge.svg?branch=master)](https://coveralls.io/r/stefankoegl/python-json-pointer?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/stefankoegl/python-json-pointer/badge.svg?branch=master)](https://coveralls.io/github/stefankoegl/python-json-pointer?branch=master)
 
 
 Resolve JSON Pointers in Python
@@ -18,4 +18,4 @@ See source code for examples
 * Documentation: https://python-json-pointer.readthedocs.org/
 * PyPI: https://pypi.python.org/pypi/jsonpointer
 * Travis CI: https://travis-ci.org/stefankoegl/python-json-pointer
-* Coveralls: https://coveralls.io/r/stefankoegl/python-json-pointer
+* Coveralls: https://coveralls.io/github/stefankoegl/python-json-pointer
