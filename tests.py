@@ -196,6 +196,19 @@ class ComparisonTests(unittest.TestCase):
         ptr12e = self.ptr1 / ["a", "b"]
         self.assertEqual(ptr12e.path, "/a/b/c/a/b")
 
+    def test_join_preserves_control_flow_exceptions(self):
+        for exception_type in (KeyboardInterrupt, SystemExit, GeneratorExit):
+            with self.subTest(exception_type=exception_type):
+                error = exception_type()
+
+                def parts():
+                    yield 'valid'
+                    raise error
+
+                with self.assertRaises(exception_type) as caught:
+                    self.ptr1.join(parts())
+                self.assertIs(caught.exception, error)
+
     def test_join_subclass(self):
         class Pointer(JsonPointer):
             pass
