@@ -307,7 +307,7 @@ class JsonPointer:
             suffix_parts = suffix
         try:
             return self.__class__.from_parts(chain(self.parts, suffix_parts))
-        except:  # noqa E722
+        except Exception:
             raise JsonPointerException("Invalid suffix")
 
     def __truediv__(self, suffix):
