@@ -28,10 +28,11 @@ The program has the following usage ::
 The pointer can be passed as the first positional argument, with ``-p``, or
 read from a file with ``-f``.
 
-The exit status is 0 if the pointer could be resolved on all files, 1 if it
-could not be resolved on at least one file (the remaining files are still
-processed) and 2 on usage errors, such as an invalid pointer or a missing
-file.
+The exit status is 0 if the pointer could be resolved on all files, 1 if a
+file contains invalid JSON or the pointer could not be resolved on at least
+one file (the remaining files are still processed) and 2 on usage errors,
+such as an invalid pointer or a missing file. Invalid JSON is reported on
+standard error with the file name and the decoder's error location.
 
 Example
 ^^^^^^^

@@ -584,6 +584,40 @@ class CommandLineTests(unittest.TestCase):
         self.assertIn('Could not resolve pointer', proc.stderr)
         self.assertEqual(proc.stdout, '1\n')
 
+    def test_invalid_json(self):
+        for content in ('', '{"a": }', '{"a": 1}\n{"a": 2}'):
+            with self.subTest(content=content):
+                self._write('invalid.json', content)
+                proc = self._run('/a', 'invalid.json')
+                self.assertEqual(proc.returncode, 1)
+                self.assertEqual(proc.stdout, '')
+                self.assertIn("Could not parse JSON in 'invalid.json':",
+                              proc.stderr)
+                self.assertIn('line ', proc.stderr)
+                self.assertNotIn('Traceback', proc.stderr)
+
+    def test_invalid_json_in_one_file(self):
+        self._write('invalid.json', '{"a": }')
+        for index in range(3):
+            with self.subTest(index=index):
+                files = ['a.json', 'b.json']
+                files.insert(index, 'invalid.json')
+                proc = self._run('/a', *files)
+                self.assertEqual(proc.returncode, 1)
+                self.assertEqual(proc.stdout, self.A_OUT + self.B_OUT)
+                self.assertIn("Could not parse JSON in 'invalid.json':",
+                              proc.stderr)
+                self.assertNotIn('Traceback', proc.stderr)
+
+    def test_invalid_json_and_unresolvable_pointer(self):
+        self._write('invalid.json', '{"a": }')
+        proc = self._run('/b', 'invalid.json', 'a.json', 'b.json')
+        self.assertEqual(proc.returncode, 1)
+        self.assertEqual(proc.stdout, '1\n')
+        self.assertIn("Could not parse JSON in 'invalid.json':", proc.stderr)
+        self.assertIn('Could not resolve pointer:', proc.stderr)
+        self.assertNotIn('Traceback', proc.stderr)
+
     def test_pointer_file_requires_value(self):
         proc = self._run('-f', '-p', '/a', 'a.json')
         self.assertEqual(proc.returncode, 2)

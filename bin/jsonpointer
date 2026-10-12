@@ -77,8 +77,8 @@ def parse_pointer(args):
 def resolve_files():
     """ Resolve a JSON pointer on JSON files
 
-    Returns False if the pointer could not be resolved on at least one
-    file. """
+    Returns False if at least one file contains invalid JSON or the pointer
+    could not be resolved on it. """
     args = parser.parse_args()
 
     ptr, files = parse_pointer(args)
@@ -90,7 +90,14 @@ def resolve_files():
         except argparse.ArgumentTypeError as e:
             parser.error(str(e))
 
-        doc = json.load(f)
+        try:
+            doc = json.load(f)
+        except json.JSONDecodeError as e:
+            print('Could not parse JSON in %r: %s' % (name, e),
+                  file=sys.stderr)
+            ok = False
+            continue
+
         try:
             result = jsonpointer.resolve_pointer(doc, ptr)
             print(json.dumps(result, indent=args.indent))
