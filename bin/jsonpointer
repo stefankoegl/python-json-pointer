@@ -27,6 +27,8 @@ parser.add_argument('FILE', type=str, nargs='+',
                     help='Files for which the pointer should be resolved')
 parser.add_argument('--indent', type=int, default=None,
                     help='Indent output by n spaces')
+parser.add_argument('--continue-on-error', action='store_true',
+                    help='Continue with remaining files after JSON or text decoding errors')
 parser.add_argument('-v', '--version', action='version',
                     version='%(prog)s ' + jsonpointer.__version__)
 
@@ -77,8 +79,8 @@ def parse_pointer(args):
 def resolve_files():
     """ Resolve a JSON pointer on JSON files
 
-    Returns False if at least one file contains invalid JSON or the pointer
-    could not be resolved on it. """
+    Returns False if the pointer could not be resolved on at least one file,
+    or if --continue-on-error skipped a JSON or text decoding error. """
     args = parser.parse_args()
 
     ptr, files = parse_pointer(args)
@@ -92,7 +94,9 @@ def resolve_files():
 
         try:
             doc = json.load(f)
-        except json.JSONDecodeError as e:
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            if not args.continue_on_error:
+                raise
             print('Could not parse JSON in %r: %s' % (name, e),
                   file=sys.stderr)
             ok = False

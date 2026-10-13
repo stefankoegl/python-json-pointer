@@ -6,7 +6,8 @@ that can be used to resolve a JSON pointers on JSON files.
 
 The program has the following usage ::
 
-    usage: jsonpointer [-h] [-f POINTER_FILE | -p POINTER] [--indent INDENT] [-v]
+    usage: jsonpointer [-h] [-f POINTER_FILE | -p POINTER] [--indent INDENT]
+                       [--continue-on-error] [-v]
                        [POINTER] FILE [FILE ...]
 
     Resolve a JSON pointer on JSON files
@@ -23,16 +24,24 @@ The program has the following usage ::
       -p POINTER, --pointer POINTER
                             A JSON pointer expression
       --indent INDENT       Indent output by n spaces
+      --continue-on-error   Continue with remaining files after JSON or text
+                            decoding errors
       -v, --version         show program's version number and exit
 
 The pointer can be passed as the first positional argument, with ``-p``, or
 read from a file with ``-f``.
 
-The exit status is 0 if the pointer could be resolved on all files, 1 if a
-file contains invalid JSON or the pointer could not be resolved on at least
-one file (the remaining files are still processed) and 2 on usage errors,
-such as an invalid pointer or a missing file. Invalid JSON is reported on
-standard error with the file name and the decoder's error location.
+The exit status is 0 if the pointer could be resolved on all files, 1 if it
+could not be resolved on at least one file (the remaining files are still
+processed) and 2 on usage errors, such as an invalid pointer or a missing
+file.
+
+By default, invalid JSON or a text decoding error stops processing. With
+``--continue-on-error``, these errors are reported on standard error with
+the file name and decoder details, and the remaining files are processed.
+The exit status is 1 if any file has such an error, even if later files
+succeed. Missing files and other usage errors still stop processing with
+status 2.
 
 Example
 ^^^^^^^
