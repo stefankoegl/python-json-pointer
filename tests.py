@@ -420,6 +420,16 @@ class SetTests(unittest.TestCase):
                           "/s/bar/baz", 1, create=True)
         self.assertEqual(doc, {"foo": [1], "s": "str"})
 
+    def test_set_create_immutable_sequence(self):
+        doc = {"items": ()}
+        self.assertRaises(JsonPointerException, set_pointer, doc,
+                          "/items/0/leaf", 7, create=True)
+        self.assertRaises(JsonPointerException, set_pointer, doc,
+                          "/items/0", 7, create=True)
+        self.assertRaises(JsonPointerException, set_pointer, doc,
+                          "/items/-", 7)
+        self.assertEqual(doc, {"items": ()})
+
     def test_set_create_off_by_default(self):
         doc = {}
         self.assertRaises(JsonPointerException, set_pointer, doc,
