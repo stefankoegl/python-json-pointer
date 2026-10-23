@@ -639,6 +639,36 @@ class CommandLineTests(unittest.TestCase):
         self.assertIn('Could not resolve pointer', proc.stderr)
         self.assertEqual(proc.stdout, '')
 
+    def test_end_of_list_pointer(self):
+        for content, pointer in (('[]', '/-'), ('[1, 2]', '/-'),
+                                 ('{"a": []}', '/a/-')):
+            with self.subTest(content=content, pointer=pointer):
+                self._write('array.json', content)
+                proc = self._run(pointer, 'array.json')
+                self.assertEqual(proc.returncode, 1)
+                self.assertEqual(proc.stdout, '')
+                self.assertIn('Could not resolve pointer:', proc.stderr)
+                self.assertNotIn('Traceback', proc.stderr)
+
+    def test_end_of_list_pointer_in_one_file(self):
+        self._write('array.json', '{"a": []}')
+        self._write('member.json', '{"a": {"-": "value"}}')
+        for files in (('array.json', 'member.json'),
+                      ('member.json', 'array.json')):
+            with self.subTest(files=files):
+                proc = self._run('/a/-', *files)
+                self.assertEqual(proc.returncode, 1)
+                self.assertEqual(proc.stdout, '"value"\n')
+                self.assertIn('Could not resolve pointer:', proc.stderr)
+                self.assertNotIn('Traceback', proc.stderr)
+
+    def test_hyphen_object_member(self):
+        self._write('member.json', '{"-": [1, 2]}')
+        proc = self._run('/-', 'member.json')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.stdout, '[1, 2]\n')
+        self.assertEqual(proc.stderr, '')
+
     def test_unresolvable_pointer_in_one_file(self):
         # /b resolves in b.json only; a.json is still reported but b.json
         # is processed
