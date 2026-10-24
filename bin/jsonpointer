@@ -104,6 +104,9 @@ def resolve_files():
 
         try:
             result = jsonpointer.resolve_pointer(doc, ptr)
+            if isinstance(result, jsonpointer.EndOfList):
+                raise jsonpointer.JsonPointerException(
+                    "'-' does not reference an existing array element")
             print(json.dumps(result, indent=args.indent))
         except jsonpointer.JsonPointerException as e:
             print('Could not resolve pointer: %s' % str(e), file=sys.stderr)
