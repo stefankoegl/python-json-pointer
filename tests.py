@@ -2,6 +2,7 @@
 
 import copy
 import doctest
+import json
 import os
 import subprocess
 import sys
@@ -566,14 +567,33 @@ class CommandLineTests(unittest.TestCase):
         self._write('ptr.txt', '/a\n')
 
     def _write(self, name, content):
-        with open(os.path.join(self.dir, name), 'w') as f:
+        with open(os.path.join(self.dir, name), 'w', encoding='utf-8') as f:
             f.write(content)
 
-    def _run(self, *args):
+    def _run(self, *args, utf8=True):
         env = dict(os.environ, PYTHONPATH=self.ROOT, PYTHONUTF8='1')
+        if not utf8:
+            # Keep pipes in UTF-8 while exercising locale-dependent file I/O.
+            env.update(PYTHONUTF8='0', PYTHONIOENCODING='utf-8',
+                       LC_ALL='C', PYTHONCOERCECLOCALE='0')
         return subprocess.run([sys.executable, self.SCRIPT] + list(args),
                               cwd=self.dir, env=env, capture_output=True,
-                              text=True)
+                              encoding='utf-8')
+
+    def test_utf8_json_file_without_utf8_mode(self):
+        self._write('unicode.json', '{"value": "🚀"}')
+        proc = self._run('/value', 'unicode.json', utf8=False)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(json.loads(proc.stdout), '🚀')
+        self.assertEqual(proc.stderr, '')
+
+    def test_utf8_pointer_file_without_utf8_mode(self):
+        self._write('unicode.json', json.dumps({'ä': 'expected'}))
+        self._write('unicode.txt', '/ä\n')
+        proc = self._run('-f', 'unicode.txt', 'unicode.json', utf8=False)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(json.loads(proc.stdout), 'expected')
+        self.assertEqual(proc.stderr, '')
 
     def test_positional_pointer(self):
         proc = self._run('/a', 'a.json', 'b.json')
