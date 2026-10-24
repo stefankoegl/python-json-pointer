@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(
 # Accept pointer as option, as file or as first positional argument
 ptr_group = parser.add_mutually_exclusive_group()
 
-ptr_group.add_argument('-f', '--pointer-file', type=argparse.FileType('r'),
+ptr_group.add_argument('-f', '--pointer-file', type=argparse.FileType('r', encoding='utf-8'),
                        help='File containing a JSON pointer expression')
 
 ptr_group.add_argument('-p', '--pointer', type=str,
@@ -88,7 +88,7 @@ def resolve_files():
 
     for name in files:
         try:
-            f = argparse.FileType('r')(name)
+            f = argparse.FileType('r', encoding='utf-8')(name)
         except argparse.ArgumentTypeError as e:
             parser.error(str(e))
 
