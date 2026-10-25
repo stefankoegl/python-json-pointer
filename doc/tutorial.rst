@@ -87,3 +87,21 @@ same path on several objects.
     >>> obj2 = {'foo': {'0': 1, '1': 10, '2': 100}}
     >>> pointer.resolve(obj2)
     10
+
+Checking pointer prefixes
+-------------------------
+
+``child.contains(parent)`` checks whether the parent's parts are a prefix of
+the child's parts. The equivalent membership expression is ``parent in child``.
+The comparison is between whole path parts, so ``/foo/b`` is not a prefix of
+``/foo/bar``. Equal pointers and the root pointer are prefixes too:
+
+    >>> from jsonpointer import JsonPointer
+    >>> parent = JsonPointer('/foo')
+    >>> child = JsonPointer('/foo/bar')
+    >>> child.contains(parent)
+    True
+    >>> parent in child
+    True
+    >>> child in parent
+    False

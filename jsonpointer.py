@@ -349,11 +349,34 @@ class JsonPointer:
                 raise JsonPointerException("member '%s' not found" % (part,))
 
     def contains(self, ptr):
-        """ Returns True if self contains the given ptr """
+        """Returns True if ptr's parts are a prefix of this pointer's parts.
+
+        Equal pointers and the root pointer are also prefixes. For example,
+        the longer pointer calls contains() with its parent:
+
+        >>> child = JsonPointer('/foo/bar')
+        >>> parent = JsonPointer('/foo')
+        >>> child.contains(parent)
+        True
+        >>> parent.contains(child)
+        False
+        >>> child.contains(child)
+        True
+        >>> child.contains(JsonPointer(''))
+        True
+        >>> child.contains(JsonPointer('/foo/b'))
+        False
+        """
         return self.parts[:len(ptr.parts)] == ptr.parts
 
     def __contains__(self, item):
-        """ Returns True if self contains the given ptr """
+        """Equivalent to contains(): item must be a prefix of self.
+
+        >>> JsonPointer('/foo') in JsonPointer('/foo/bar')
+        True
+        >>> JsonPointer('/foo/bar') in JsonPointer('/foo')
+        False
+        """
         return self.contains(item)
 
     def join(self, suffix):
