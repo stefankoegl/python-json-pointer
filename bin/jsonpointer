@@ -58,7 +58,11 @@ def parse_pointer(args):
             ptr = args.pointer
         else:
             # 2026-10-11: Trim file line endings without changing member names.
-            ptr = args.pointer_file.read().rstrip("\r\n")
+            try:
+                ptr = args.pointer_file.read().rstrip("\r\n")
+            finally:
+                if args.pointer_file is not sys.stdin:
+                    args.pointer_file.close()
 
     elif args.POINTER is not None:
         ptr = args.POINTER
@@ -101,6 +105,9 @@ def resolve_files():
                   file=sys.stderr)
             ok = False
             continue
+        finally:
+            if f is not sys.stdin:
+                f.close()
 
         try:
             result = jsonpointer.resolve_pointer(doc, ptr)
