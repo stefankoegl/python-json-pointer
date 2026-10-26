@@ -2,12 +2,16 @@
 
 import copy
 import doctest
+import io
 import json
 import os
+import runpy
 import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from unittest import mock
 
 import jsonpointer
 from jsonpointer import resolve_pointer, EndOfList, JsonPointerException, \
@@ -579,6 +583,65 @@ class CommandLineTests(unittest.TestCase):
         return subprocess.run([sys.executable, self.SCRIPT] + list(args),
                               cwd=self.dir, env=env, capture_output=True,
                               encoding='utf-8')
+
+    def _run_with_retained_files(self, *args):
+        cli = runpy.run_path(self.SCRIPT)
+        opened = []
+        original_open = open
+
+        def retain_file(*args, **kwargs):
+            file_obj = original_open(*args, **kwargs)
+            opened.append(file_obj)
+            self.addCleanup(file_obj.close)
+            return file_obj
+
+        with mock.patch.object(sys, 'argv', [self.SCRIPT] + list(args)), \
+                mock.patch('builtins.open', side_effect=retain_file), \
+                redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            try:
+                return cli['resolve_files']()
+            finally:
+                self.assertTrue(opened)
+                self.assertTrue(all(file_obj.closed for file_obj in opened))
+
+    def test_closes_json_inputs(self):
+        self.assertTrue(self._run_with_retained_files(
+            '/a', os.path.join(self.dir, 'a.json'),
+            os.path.join(self.dir, 'b.json')))
+
+    def test_closes_pointer_file(self):
+        self.assertTrue(self._run_with_retained_files(
+            '-f', os.path.join(self.dir, 'ptr.txt'),
+            os.path.join(self.dir, 'a.json')))
+
+    def test_closes_invalid_pointer_file(self):
+        self._write('invalid-pointer.txt', 'missing-leading-slash')
+        with self.assertRaises(SystemExit) as caught:
+            self._run_with_retained_files(
+                '-f', os.path.join(self.dir, 'invalid-pointer.txt'),
+                os.path.join(self.dir, 'a.json'))
+        self.assertEqual(caught.exception.code, 2)
+
+    def test_closes_inputs_after_json_errors(self):
+        self._write('invalid.json', '{"a": }')
+        with self.assertRaises(json.JSONDecodeError):
+            self._run_with_retained_files('/a', os.path.join(self.dir, 'invalid.json'))
+        self.assertFalse(self._run_with_retained_files(
+            '--continue-on-error', '/a', os.path.join(self.dir, 'invalid.json'),
+            os.path.join(self.dir, 'a.json')))
+
+    def test_keeps_stdin_open(self):
+        cli = runpy.run_path(self.SCRIPT)
+        for args, content in ((['/a', '-'], '{"a": 1}'),
+                              (['-f', '-', os.path.join(self.dir, 'a.json')], '/a\n')):
+            with self.subTest(args=args):
+                stdin = io.StringIO(content)
+                self.addCleanup(stdin.close)
+                with mock.patch.object(sys, 'argv', [self.SCRIPT] + args), \
+                        mock.patch.object(sys, 'stdin', stdin), \
+                        redirect_stdout(io.StringIO()):
+                    self.assertTrue(cli['resolve_files']())
+                self.assertFalse(stdin.closed)
 
     def test_utf8_json_file_without_utf8_mode(self):
         self._write('unicode.json', '{"value": "🚀"}')
