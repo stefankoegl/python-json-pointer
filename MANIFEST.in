@@ -2,3 +2,4 @@ include AUTHORS
 include LICENSE.txt
 include README.md
 include tests.py
+include doc/*.rst

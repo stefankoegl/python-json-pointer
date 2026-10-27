@@ -38,10 +38,10 @@ JSON pointer notation:
     >>> obj = {"foo": {"anArray": [ {"prop": 44}], "another prop": {"baz": "A string" }}}
 
     >>> set_pointer(obj, '/foo/anArray/0/prop', 55)
-    {'foo': {'another prop': {'baz': 'A string'}, 'anArray': [{'prop': 55}]}}
+    {'foo': {'anArray': [{'prop': 55}], 'another prop': {'baz': 'A string'}}}
 
     >>> obj
-    {'foo': {'another prop': {'baz': 'A string'}, 'anArray': [{'prop': 55}]}}
+    {'foo': {'anArray': [{'prop': 55}], 'another prop': {'baz': 'A string'}}}
 
 By default ``set_pointer`` modifies the original object.  Pass ``inplace=False``
 to create a copy and modify the copy instead:
@@ -50,10 +50,10 @@ to create a copy and modify the copy instead:
     >>> obj = {"foo": {"anArray": [ {"prop": 44}], "another prop": {"baz": "A string" }}}
 
     >>> set_pointer(obj, '/foo/anArray/0/prop', 55, inplace=False)
-    {'foo': {'another prop': {'baz': 'A string'}, 'anArray': [{'prop': 55}]}}
+    {'foo': {'anArray': [{'prop': 55}], 'another prop': {'baz': 'A string'}}}
 
     >>> obj
-    {'foo': {'another prop': {'baz': 'A string'}, 'anArray': [{'prop': 44}]}}
+    {'foo': {'anArray': [{'prop': 44}], 'another prop': {'baz': 'A string'}}}
 
 By default, setting a value below a member that does not exist raises a
 ``JsonPointerException``. Pass ``create=True`` to create missing members as

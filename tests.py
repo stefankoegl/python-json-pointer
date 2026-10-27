@@ -6,9 +6,11 @@ import io
 import json
 import os
 import runpy
+import shlex
 import subprocess
 import sys
 import tempfile
+import textwrap
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from unittest import mock
@@ -886,6 +888,65 @@ class VerboseExceptionsTests(unittest.TestCase):
             self.assertIn('bar', str(e))
 
 
+class DocExampleTests(unittest.TestCase):
+    """ Runs the shell examples from the documentation """
+
+    ROOT = os.path.dirname(os.path.abspath(__file__))
+    SCRIPT = os.path.join(ROOT, 'bin', 'jsonpointer')
+
+    def _examples(self, name):
+        """ Yields (command, expected output) pairs of the shell sessions in
+        the ``code-block:: bash`` directives of the given doc file """
+        with open(os.path.join(self.ROOT, 'doc', name), encoding='utf-8') as f:
+            blocks = f.read().split('.. code-block:: bash\n')[1:]
+        self.assertTrue(blocks, 'no bash examples found in ' + name)
+
+        for block in blocks:
+            # The block ends at the first non-indented line
+            lines = []
+            for line in block.splitlines()[1:]:
+                if line and not line[0].isspace():
+                    break
+                lines.append(line)
+            lines = textwrap.dedent('\n'.join(lines)).splitlines()
+
+            cmd, output = None, []
+            for line in lines + ['']:
+                if line.startswith('$ '):
+                    cmd, output = line[2:], []
+                elif cmd is not None and line.strip() and not line.startswith('#'):
+                    output.append(line)
+                elif cmd is not None:
+                    yield cmd, ''.join(out + '\n' for out in output)
+                    cmd = None
+
+    def test_commandline_examples(self):
+        tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(tmpdir.cleanup)
+        env = dict(os.environ, PYTHONPATH=self.ROOT, PYTHONUTF8='1')
+
+        examples = list(self._examples('commandline.rst'))
+        self.assertTrue(any(cmd.startswith('jsonpointer ')
+                            for cmd, _ in examples))
+        for cmd, expected in examples:
+            with self.subTest(cmd=cmd):
+                args = shlex.split(cmd)
+                if args[0] == 'cat':
+                    # "cat" shows the input files used by later examples
+                    path = os.path.join(tmpdir.name, args[1])
+                    with open(path, 'w', encoding='utf-8') as f:
+                        f.write(expected)
+                    continue
+
+                self.assertEqual(args[0], 'jsonpointer')
+                result = subprocess.run([sys.executable, self.SCRIPT] + args[1:],
+                                        cwd=tmpdir.name, env=env,
+                                        capture_output=True, encoding='utf-8')
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout, expected)
+
+
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite(jsonpointer))
+    tests.addTests(doctest.DocFileSuite('doc/tutorial.rst'))
     return tests
