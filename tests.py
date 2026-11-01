@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from collections import defaultdict
 from contextlib import redirect_stderr, redirect_stdout
 from unittest import mock
 
@@ -550,6 +551,35 @@ class AltTypesTests(unittest.TestCase):
         doc = self.mdict
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/foo')
         self.assertRaises(JsonPointerException, resolve_pointer, doc, '/root/1/2/3/4')
+
+
+class DefaultDictTests(unittest.TestCase):
+    """Missing members of mappings with __missing__ must stay missing (#101)"""
+
+    def test_resolve_missing_returns_default(self):
+        doc = defaultdict(dict)
+        self.assertEqual(resolve_pointer(doc, '/missing', 'SENTINEL'), 'SENTINEL')
+        self.assertEqual(dict(doc), {})
+
+    def test_resolve_missing_raises(self):
+        doc = defaultdict(dict)
+        self.assertRaises(JsonPointerException, resolve_pointer, doc, '/missing')
+        self.assertEqual(dict(doc), {})
+
+    def test_resolve_existing_member(self):
+        doc = defaultdict(dict, {'foo': {'bar': 1}})
+        self.assertEqual(resolve_pointer(doc, '/foo/bar'), 1)
+
+    def test_set_without_create_raises(self):
+        doc = defaultdict(dict)
+        self.assertRaises(JsonPointerException, set_pointer, doc,
+                          '/missing/child', 1)
+        self.assertEqual(dict(doc), {})
+
+    def test_set_with_create(self):
+        doc = defaultdict(dict)
+        set_pointer(doc, '/missing/child', 1, create=True)
+        self.assertEqual(dict(doc), {'missing': {'child': 1}})
 
 
 class CommandLineTests(unittest.TestCase):
