@@ -622,6 +622,30 @@ class CommandLineTests(unittest.TestCase):
                 os.path.join(self.dir, 'a.json'))
         self.assertEqual(caught.exception.code, 2)
 
+    def test_closes_pointer_file_after_decoding_error(self):
+        path = os.path.join(self.dir, 'invalid-pointer.txt')
+        with open(path, 'wb') as f:
+            f.write(b'/\xff')
+        with self.assertRaises(SystemExit) as caught:
+            self._run_with_retained_files(
+                '-f', path, os.path.join(self.dir, 'a.json'))
+        self.assertEqual(caught.exception.code, 2)
+
+    def test_pointer_decoding_error_keeps_stdin_open(self):
+        cli = runpy.run_path(self.SCRIPT)
+        stdin = io.TextIOWrapper(io.BytesIO(b'/\xff'), encoding='utf-8')
+        self.addCleanup(stdin.close)
+        args = [self.SCRIPT, '-f', '-', os.path.join(self.dir, 'a.json')]
+        with mock.patch.object(sys, 'argv', args), \
+                mock.patch.object(sys, 'stdin', stdin), \
+                mock.patch('builtins.open') as open_file, \
+                redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit) as caught:
+                cli['resolve_files']()
+            self.assertEqual(caught.exception.code, 2)
+            open_file.assert_not_called()
+        self.assertFalse(stdin.closed)
+
     def test_closes_inputs_after_json_errors(self):
         self._write('invalid.json', '{"a": }')
         with self.assertRaises(json.JSONDecodeError):
@@ -710,6 +734,19 @@ class CommandLineTests(unittest.TestCase):
         proc = self._run('-f', 'bad.txt', 'a.json')
         self.assertEqual(proc.returncode, 2)
         self.assertIn("invalid JSON pointer 'a'", proc.stderr)
+
+    def test_invalid_pointer_file_encoding(self):
+        with open(os.path.join(self.dir, 'bad.txt'), 'wb') as f:
+            f.write(b'/\xff')
+        for options in ([], ['--continue-on-error']):
+            with self.subTest(options=options):
+                proc = self._run(*options, '-f', 'bad.txt',
+                                 'a.json', 'b.json')
+                self.assertEqual(proc.returncode, 2, proc.stderr)
+                self.assertEqual(proc.stdout, '')
+                self.assertIn('could not decode pointer file:', proc.stderr)
+                self.assertIn('decode', proc.stderr)
+                self.assertNotIn('Traceback', proc.stderr)
 
     def test_empty_pointer(self):
         proc = self._run('', 'a.json')
