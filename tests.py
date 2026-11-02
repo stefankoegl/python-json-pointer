@@ -949,13 +949,15 @@ class DocExampleTests(unittest.TestCase):
 
             cmd, output = None, []
             for line in lines + ['']:
-                if line.startswith('$ '):
-                    cmd, output = line[2:], []
-                elif cmd is not None and line.strip() and not line.startswith('#'):
+                is_output = line.strip() and not line.startswith(('$ ', '#'))
+                if cmd is not None and is_output:
                     output.append(line)
-                elif cmd is not None:
+                    continue
+                if cmd is not None:
                     yield cmd, ''.join(out + '\n' for out in output)
-                    cmd = None
+                cmd, output = None, []
+                if line.startswith('$ '):
+                    cmd = line[2:]
 
     def test_commandline_examples(self):
         tmpdir = tempfile.TemporaryDirectory()
