@@ -47,7 +47,7 @@ CLASSIFIERS = [
     'Programming Language :: Python :: Implementation :: PyPy',
     'Topic :: Software Development :: Libraries',
     'Topic :: Utilities',
-    'Typing :: Stubs Only',
+    'Typing :: Typed',
 ]
 
 setup(
