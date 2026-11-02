@@ -47,6 +47,7 @@ CLASSIFIERS = [
     'Programming Language :: Python :: Implementation :: PyPy',
     'Topic :: Software Development :: Libraries',
     'Topic :: Utilities',
+    'Typing :: Stubs Only',
 ]
 
 setup(
@@ -60,6 +61,9 @@ setup(
     license=LICENSE,
     url=WEBSITE,
     py_modules=MODULES,
+    # PEP 561 stub-only package, shipped in the same distribution
+    packages=['jsonpointer-stubs'],
+    package_data={'jsonpointer-stubs': ['__init__.pyi']},
     scripts=['bin/jsonpointer'],
     classifiers=CLASSIFIERS,
     python_requires='>=3.10',
