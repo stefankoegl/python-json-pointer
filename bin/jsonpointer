@@ -60,6 +60,8 @@ def parse_pointer(args):
             # 2026-10-11: Trim file line endings without changing member names.
             try:
                 ptr = args.pointer_file.read().rstrip("\r\n")
+            except UnicodeDecodeError as e:
+                parser.error('could not decode pointer file: %s' % e)
             finally:
                 if args.pointer_file is not sys.stdin:
                     args.pointer_file.close()
