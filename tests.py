@@ -83,6 +83,17 @@ class SpecificationTests(unittest.TestCase):
             new_ptr = JsonPointer.from_parts(parts)
             self.assertEqual(ptr, new_ptr)
 
+    def test_escaped_tilde_is_not_decoded_twice(self):
+        # RFC 6901 section 4: decode ~1 before ~0, so ~01 becomes ~1, not /.
+        pointer = JsonPointer('/~01')
+        self.assertEqual(pointer.parts, ['~1'])
+        self.assertEqual(JsonPointer.from_parts(pointer.parts).path, '/~01')
+
+        doc = {'~1': 'tilde member', '/': 'slash member'}
+        self.assertEqual(resolve_pointer(doc, '/~01'), 'tilde member')
+        set_pointer(doc, '/~01', 'updated')
+        self.assertEqual(doc, {'~1': 'updated', '/': 'slash member'})
+
     def test_str_and_repr(self):
         paths = [
             ("", "", "JsonPointer('')"),
