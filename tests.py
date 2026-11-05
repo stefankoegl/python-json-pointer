@@ -467,6 +467,34 @@ class SetTests(unittest.TestCase):
                           "/cat/name", "whiskers")
         self.assertEqual(doc, {})
 
+    def test_set_sequence_append_invalid_type(self):
+        for pointer, create in (("/items/0", False), ("/items/-", False),
+                                ("/items/-", True), ("/items/1", True)):
+            for inplace in (False, True):
+                with self.subTest(pointer=pointer, create=create, inplace=inplace):
+                    doc = {"items": bytearray([1])}
+                    with self.assertRaisesRegex(JsonPointerException, "Invalid assignment target:"):
+                        set_pointer(doc, pointer, "invalid", inplace=inplace, create=create)
+                    self.assertEqual(doc, {"items": bytearray([1])})
+
+    def test_set_create_sequence_append_invalid_child(self):
+        for pointer in ("/items/-/leaf", "/items/1/leaf"):
+            with self.subTest(pointer=pointer):
+                doc = {"items": bytearray([1])}
+                with self.assertRaisesRegex(JsonPointerException, "Invalid assignment target:"):
+                    set_pointer(doc, pointer, 7, create=True)
+                self.assertEqual(doc, {"items": bytearray([1])})
+
+    def test_set_sequence_append_valid_type(self):
+        for pointer, create in (("/items/-", False), ("/items/-", True),
+                                ("/items/1", True)):
+            for inplace in (False, True):
+                with self.subTest(pointer=pointer, create=create, inplace=inplace):
+                    doc = {"items": bytearray([1])}
+                    result = set_pointer(doc, pointer, 2, inplace=inplace, create=create)
+                    self.assertEqual(result, {"items": bytearray([1, 2])})
+                    self.assertEqual(doc, result if inplace else {"items": bytearray([1])})
+
 
 class AltTypesTests(unittest.TestCase):
     class Node(object):

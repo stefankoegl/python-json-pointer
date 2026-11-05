@@ -275,8 +275,9 @@ class JsonPointer:
         elif isinstance(parent, Sequence) and part == '-':
             try:
                 parent.append(value)
-            except AttributeError as e:
-                # immutable sequences, such as tuples, can't be appended to
+            except (AttributeError, TypeError) as e:
+                # Immutable sequences can't be appended to; typed sequences
+                # can reject the value just like an indexed assignment.
                 raise JsonPointerException("Invalid assignment target: %s" % (e,))
         else:
             try:
