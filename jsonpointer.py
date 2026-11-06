@@ -341,6 +341,12 @@ class JsonPointer:
 
         # Else the object is a mapping or supports __getitem__(so assume custom indexing)
         try:
+            # Check membership first so that mappings with a fallback for
+            # missing keys (e.g. defaultdict.__missing__) are not mutated and
+            # absent members are reported as missing.
+            if isinstance(doc, Mapping) and part not in doc:
+                raise KeyError(part)
+
             return doc[part]
 
         except KeyError:
