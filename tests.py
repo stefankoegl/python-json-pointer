@@ -171,6 +171,23 @@ class ComparisonTests(unittest.TestCase):
         # a pointer compares not-equal to objects of other types
         self.assertFalse(p1 == "/something/1/b")
 
+    def test_other_types_remain_unequal(self):
+        for other in ["/a/b/c", None, 1, object()]:
+            for left, right in [(self.ptr1, other), (other, self.ptr1)]:
+                with self.subTest(left=left, right=right):
+                    self.assertFalse(left == right)
+                    self.assertTrue(left != right)
+
+    def test_reflected_equality(self):
+        for left, right in [(self.ptr1, mock.ANY), (mock.ANY, self.ptr1)]:
+            with self.subTest(left=left, right=right):
+                self.assertTrue(left == right)
+
+    def test_reflected_inequality(self):
+        for left, right in [(self.ptr1, mock.ANY), (mock.ANY, self.ptr1)]:
+            with self.subTest(left=left, right=right):
+                self.assertFalse(left != right)
+
     def test_contains(self):
         self.assertTrue(self.ptr1.contains(self.ptr2))
         self.assertTrue(self.ptr1.contains(self.ptr1))
