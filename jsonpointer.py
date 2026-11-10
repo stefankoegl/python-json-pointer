@@ -163,7 +163,7 @@ class JsonPointer:
 
     # Array indices must not contain:
     # leading zeros, signs, spaces, decimals, etc
-    _RE_ARRAY_INDEX = re.compile('0|[1-9][0-9]*$')
+    _RE_ARRAY_INDEX = re.compile('0|[1-9][0-9]*')
     _RE_INVALID_ESCAPE = re.compile('(~[^01]|~$)')
 
     def __init__(self, pointer):
@@ -327,8 +327,6 @@ class JsonPointer:
 
         part = JsonPointer.get_part(doc, part)
 
-        assert hasattr(doc, '__getitem__'), "invalid document type %s" % (type(doc),)
-
         if isinstance(doc, Sequence):
             if part == '-':
                 return EndOfList(doc)
@@ -387,7 +385,7 @@ class JsonPointer:
         return self.contains(item)
 
     def join(self, suffix):
-        """ Returns a new JsonPointer with the given suffix append to this ptr """
+        """ Returns a new JsonPointer with the given suffix appended to this ptr """
         if isinstance(suffix, JsonPointer):
             suffix_parts = suffix.parts
         elif isinstance(suffix, str):
@@ -406,7 +404,8 @@ class JsonPointer:
     def path(self):
         """Returns the string representation of the pointer
 
-        >>> ptr = JsonPointer('/~0/0/~1').path == '/~0/0/~1'
+        >>> JsonPointer('/~0/0/~1').path == '/~0/0/~1'
+        True
         """
         parts = [escape(part) for part in self.parts]
         return ''.join('/' + part for part in parts)
@@ -414,7 +413,7 @@ class JsonPointer:
     def __eq__(self, other):
         """Compares a pointer to another object
 
-        Pointers can be compared by comparing their strings (or splitted
+        Pointers can be compared by comparing their strings (or split
         strings), because no two different parts can point to the same
         structure in an object (eg no different number representations)
         """
@@ -435,7 +434,7 @@ class JsonPointer:
 
     @classmethod
     def from_parts(cls, parts):
-        """Constructs a JsonPointer from a list of (unescaped) paths
+        """Constructs a JsonPointer from a list of (unescaped) parts
 
         >>> JsonPointer.from_parts(['a', '~', '/', 0]).path == '/a/~0/~1/0'
         True

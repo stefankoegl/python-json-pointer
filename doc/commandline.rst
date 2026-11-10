@@ -2,7 +2,7 @@ The ``jsonpointer`` commandline utility
 =======================================
 
 The JSON pointer package also installs a ``jsonpointer`` commandline utility
-that can be used to resolve a JSON pointers on JSON files.
+that can be used to resolve a JSON pointer on JSON files.
 
 The program has the following usage ::
 
@@ -19,9 +19,9 @@ The program has the following usage ::
 
     options:
       -h, --help            show this help message and exit
-      -f POINTER_FILE, --pointer-file POINTER_FILE
+      -f, --pointer-file POINTER_FILE
                             File containing a JSON pointer expression
-      -p POINTER, --pointer POINTER
+      -p, --pointer POINTER
                             A JSON pointer expression
       --indent INDENT       Indent output by n spaces
       --continue-on-error   Continue with remaining files after JSON or text

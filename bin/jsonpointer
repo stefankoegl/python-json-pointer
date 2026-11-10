@@ -44,7 +44,7 @@ def main():
 
 
 def parse_pointer(args):
-    """ Return the pointer and the list of files to resolve it on
+    """ Return the parsed pointer and the list of files to resolve it on
 
     If the pointer is given via -f or -p, a POINTER positional argument is
     actually the first file. """
@@ -57,7 +57,8 @@ def parse_pointer(args):
         if args.pointer is not None:
             ptr = args.pointer
         else:
-            # 2026-10-11: Trim file line endings without changing member names.
+            # Strip only the trailing line ending; other whitespace may be
+            # part of a member name.
             try:
                 ptr = args.pointer_file.read().rstrip("\r\n")
             except UnicodeDecodeError as e:
@@ -75,11 +76,11 @@ def parse_pointer(args):
     # Catches e.g. `jsonpointer a.json b.json`, where the pointer was omitted
     # and the first file would otherwise be used as the pointer
     try:
-        jsonpointer.JsonPointer(ptr)
+        pointer = jsonpointer.JsonPointer(ptr)
     except jsonpointer.JsonPointerException as e:
         parser.error('invalid JSON pointer %r: %s' % (ptr, e))
 
-    return ptr, files
+    return pointer, files
 
 
 def resolve_files():
@@ -89,7 +90,7 @@ def resolve_files():
     or if --continue-on-error skipped a JSON or text decoding error. """
     args = parser.parse_args()
 
-    ptr, files = parse_pointer(args)
+    pointer, files = parse_pointer(args)
     ok = True
 
     for name in files:
@@ -112,7 +113,7 @@ def resolve_files():
                 f.close()
 
         try:
-            result = jsonpointer.resolve_pointer(doc, ptr)
+            result = pointer.resolve(doc)
             if isinstance(result, jsonpointer.EndOfList):
                 raise jsonpointer.JsonPointerException(
                     "'-' does not reference an existing array element")

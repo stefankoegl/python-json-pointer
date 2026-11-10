@@ -16,7 +16,7 @@ import sys
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.join(os.path.abspath('.'), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
 import jsonpointer
 
@@ -231,7 +231,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'python-json-pointer', 'python-json-pointer Documentation',
-   'Stefan Kögl', 'python-json-pointer', 'One line description of project.',
+   'Stefan Kögl', 'python-json-pointer', jsonpointer.__doc__.strip(),
    'Miscellaneous'),
 ]
 
