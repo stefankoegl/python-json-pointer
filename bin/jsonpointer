@@ -37,7 +37,8 @@ def main():
     try:
         ok = resolve_files()
     except KeyboardInterrupt:
-        sys.exit(1)
+        # Conventional status for termination by SIGINT (128 + 2)
+        sys.exit(130)
 
     if not ok:
         sys.exit(1)

@@ -755,6 +755,17 @@ class CommandLineTests(unittest.TestCase):
                     self.assertTrue(cli['resolve_files']())
                 self.assertFalse(stdin.closed)
 
+    def test_keyboard_interrupt_exit_status(self):
+        cli = runpy.run_path(self.SCRIPT)
+
+        def interrupted():
+            raise KeyboardInterrupt
+
+        cli['resolve_files'] = interrupted
+        with self.assertRaises(SystemExit) as caught:
+            cli['main']()
+        self.assertEqual(caught.exception.code, 130)
+
     def test_utf8_json_file_without_utf8_mode(self):
         self._write('unicode.json', '{"value": "🚀"}')
         proc = self._run('/value', 'unicode.json', utf8=False)
