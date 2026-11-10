@@ -450,3 +450,159 @@ def escape(s):
 
 def unescape(s):
     return s.replace('~1', '/').replace('~0', '~')
+
+
+# -- Command line interface ---------------------------------------------------
+#
+# Installed as the "jsonpointer" command; also available as
+# "python -m jsonpointer".
+
+
+def _cli_parser():
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog='jsonpointer',
+        description='Resolve a JSON pointer on JSON files')
+
+    # Accept pointer as option, as file or as first positional argument
+    ptr_group = parser.add_mutually_exclusive_group()
+
+    ptr_group.add_argument('-f', '--pointer-file', type=str,
+                           help='File containing a JSON pointer expression')
+
+    ptr_group.add_argument('-p', '--pointer', type=str,
+                           help='A JSON pointer expression')
+
+    parser.add_argument('POINTER', type=str, nargs='?',
+                        help='A JSON pointer expression (if neither -f nor -p '
+                             'is given)')
+
+    parser.add_argument('FILE', type=str, nargs='+',
+                        help='Files for which the pointer should be resolved')
+    parser.add_argument('--indent', type=int, default=None,
+                        help='Indent output by n spaces')
+    parser.add_argument('--continue-on-error', action='store_true',
+                        help='Continue with remaining files after JSON or text decoding errors')
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s ' + __version__)
+    return parser
+
+
+def main(argv=None):
+    """Entry point of the jsonpointer command line utility"""
+    import sys
+
+    try:
+        ok = _resolve_files(argv)
+    except KeyboardInterrupt:
+        # Conventional status for termination by SIGINT (128 + 2)
+        sys.exit(130)
+
+    if not ok:
+        sys.exit(1)
+
+
+def _open_input(parser, name):
+    """ Open a UTF-8 input file, or return stdin for "-"
+
+    Exits with a usage error if the file cannot be opened. """
+    import sys
+
+    if name == '-':
+        return sys.stdin
+
+    try:
+        return open(name, encoding='utf-8')
+    except OSError as e:
+        parser.error("can't open '%s': %s" % (name, e))
+
+
+def _parse_pointer(parser, args):
+    """ Return the parsed pointer and the list of files to resolve it on
+
+    If the pointer is given via -f or -p, a POINTER positional argument is
+    actually the first file. """
+    import sys
+
+    files = args.FILE
+
+    if args.pointer is not None or args.pointer_file is not None:
+        if args.POINTER is not None:
+            files = [args.POINTER] + files
+
+        if args.pointer is not None:
+            ptr = args.pointer
+        else:
+            # Strip only the trailing line ending; other whitespace may be
+            # part of a member name.
+            pointer_file = _open_input(parser, args.pointer_file)
+            try:
+                ptr = pointer_file.read().rstrip("\r\n")
+            except UnicodeDecodeError as e:
+                parser.error('could not decode pointer file: %s' % e)
+            finally:
+                if pointer_file is not sys.stdin:
+                    pointer_file.close()
+
+    elif args.POINTER is not None:
+        ptr = args.POINTER
+
+    else:
+        parser.error('a JSON pointer is required (POINTER, -p or -f)')
+
+    # Catches e.g. `jsonpointer a.json b.json`, where the pointer was omitted
+    # and the first file would otherwise be used as the pointer
+    try:
+        pointer = JsonPointer(ptr)
+    except JsonPointerException as e:
+        parser.error('invalid JSON pointer %r: %s' % (ptr, e))
+
+    return pointer, files
+
+
+def _resolve_files(argv=None):
+    """ Resolve a JSON pointer on JSON files
+
+    Returns False if the pointer could not be resolved on at least one file,
+    or if --continue-on-error skipped a JSON or text decoding error. """
+    import json
+    import sys
+
+    parser = _cli_parser()
+    args = parser.parse_args(argv)
+
+    pointer, files = _parse_pointer(parser, args)
+    ok = True
+
+    for name in files:
+        f = _open_input(parser, name)
+
+        try:
+            doc = json.load(f)
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            if not args.continue_on_error:
+                raise
+            print('Could not parse JSON in %r: %s' % (name, e),
+                  file=sys.stderr)
+            ok = False
+            continue
+        finally:
+            if f is not sys.stdin:
+                f.close()
+
+        try:
+            result = pointer.resolve(doc)
+            if isinstance(result, EndOfList):
+                raise JsonPointerException(
+                    "'-' does not reference an existing array element")
+            print(json.dumps(result, indent=args.indent))
+        except JsonPointerException as e:
+            print('Could not resolve pointer: %s' % str(e), file=sys.stderr)
+            ok = False
+
+    return ok
+
+
+if __name__ == '__main__':
+    main()

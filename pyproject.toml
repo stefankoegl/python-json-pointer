@@ -30,6 +30,9 @@ classifiers = [
     "Typing :: Typed",
 ]
 
+[project.scripts]
+jsonpointer = "jsonpointer:main"
+
 [project.urls]
 Homepage = "https://github.com/stefankoegl/python-json-pointer"
 
@@ -37,7 +40,6 @@ Homepage = "https://github.com/stefankoegl/python-json-pointer"
 py-modules = ["jsonpointer"]
 # PEP 561 stub-only package, shipped in the same distribution
 packages = ["jsonpointer-stubs"]
-script-files = ["bin/jsonpointer"]
 
 [tool.setuptools.package-data]
 jsonpointer-stubs = ["__init__.pyi"]
