@@ -980,6 +980,12 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(proc.stdout, self.A_OUT)
         self.assertIn('missing.json', proc.stderr)
 
+    def test_missing_pointer_file(self):
+        proc = self._run('-f', 'missing.txt', 'a.json')
+        self.assertEqual(proc.returncode, 2)
+        self.assertEqual(proc.stdout, '')
+        self.assertIn("can't open 'missing.txt'", proc.stderr)
+
     def test_pointer_file_requires_value(self):
         proc = self._run('-f', '-p', '/a', 'a.json')
         self.assertEqual(proc.returncode, 2)
