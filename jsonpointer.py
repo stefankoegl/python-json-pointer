@@ -420,7 +420,7 @@ class JsonPointer:
         """
 
         if not isinstance(other, JsonPointer):
-            return False
+            return NotImplemented
 
         return self.parts == other.parts
 
