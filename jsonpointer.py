@@ -34,7 +34,7 @@
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
 __version__ = '3.11'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
-__license__ = 'Modified BSD License'
+__license__ = 'BSD-3-Clause'
 
 import copy
 import re
