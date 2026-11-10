@@ -2,7 +2,7 @@ from collections.abc import Iterable, Iterator
 from re import Pattern
 from typing import Any, Final, TypeVar
 
-from typing_extensions import Self
+from typing_extensions import Self, deprecated
 
 _T = TypeVar("_T")
 
@@ -21,6 +21,7 @@ def set_pointer(
     create: bool = False,
 ) -> Any: ...
 def resolve_pointer(doc: Any, pointer: str, default: Any = ...) -> Any: ...
+@deprecated("Use itertools.pairwise() instead")
 def pairwise(iterable: Iterable[_T]) -> Iterator[tuple[_T, _T]]: ...
 
 class JsonPointerException(Exception): ...
