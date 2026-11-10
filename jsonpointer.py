@@ -30,7 +30,7 @@
 
 """ Identify specific nodes in a JSON document (RFC 6901) """
 
-# Will be parsed by setup.py to determine package metadata
+# __version__ is read by setuptools (see pyproject.toml)
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
 __version__ = '3.11'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
