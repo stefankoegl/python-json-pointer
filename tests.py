@@ -216,6 +216,11 @@ class ComparisonTests(unittest.TestCase):
 
         self.assertRaises(JsonPointerException, self.ptr1.join, 0)
 
+    def test_join_chains_original_error(self):
+        with self.assertRaises(JsonPointerException) as caught:
+            self.ptr1.join(0)
+        self.assertIsInstance(caught.exception.__cause__, TypeError)
+
     def test_join_magic(self):
         ptr12a = self.ptr1 / self.ptr2
         self.assertEqual(ptr12a.path, "/a/b/c/a/b")
