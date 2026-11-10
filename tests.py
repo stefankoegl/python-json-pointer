@@ -757,13 +757,11 @@ class CommandLineTests(unittest.TestCase):
 
     def test_keyboard_interrupt_exit_status(self):
         cli = runpy.run_path(self.SCRIPT)
-
-        def interrupted():
-            raise KeyboardInterrupt
-
-        cli['resolve_files'] = interrupted
-        with self.assertRaises(SystemExit) as caught:
-            cli['main']()
+        args = [self.SCRIPT, '/a', os.path.join(self.dir, 'a.json')]
+        with mock.patch.object(sys, 'argv', args), \
+                mock.patch('json.load', side_effect=KeyboardInterrupt):
+            with self.assertRaises(SystemExit) as caught:
+                cli['main']()
         self.assertEqual(caught.exception.code, 130)
 
     def test_utf8_json_file_without_utf8_mode(self):
