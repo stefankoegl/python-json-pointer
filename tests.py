@@ -307,6 +307,17 @@ class WrongInputTests(unittest.TestCase):
 
 @unittest.skipUnless(hasattr(sys, 'get_int_max_str_digits'),
                      'Integer string conversion limits are not available')
+class PairwiseTests(unittest.TestCase):
+
+    def test_pairwise_is_deprecated(self):
+        for items, expected in (([], []), ([1], []),
+                                ([1, 2, 3, 4], [(1, 2), (2, 3), (3, 4)])):
+            with self.subTest(items=items):
+                with self.assertWarns(DeprecationWarning):
+                    result = jsonpointer.pairwise(items)
+                self.assertEqual(list(result), expected)
+
+
 class LargeIndexTests(unittest.TestCase):
 
     def setUp(self):

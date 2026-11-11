@@ -37,9 +37,11 @@ __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'BSD-3-Clause'
 
 import copy
+import itertools
 import re
+import warnings
 from collections.abc import Mapping, Sequence
-from itertools import tee, chain
+from itertools import chain
 
 _nothing = object()
 
@@ -128,19 +130,13 @@ def pairwise(iterable):
 
     s -> (s0,s1), (s1,s2), (s2, s3), ...
 
-    >>> list(pairwise([]))
-    []
-
-    >>> list(pairwise([1]))
-    []
-
-    >>> list(pairwise([1, 2, 3, 4]))
-    [(1, 2), (2, 3), (3, 4)]
+    .. deprecated:: 3.12
+       Use :func:`itertools.pairwise` instead.
     """
-    a, b = tee(iterable)
-    for _ in b:
-        break
-    return zip(a, b)
+    warnings.warn('jsonpointer.pairwise() is deprecated, '
+                  'use itertools.pairwise() instead',
+                  DeprecationWarning, stacklevel=2)
+    return itertools.pairwise(iterable)
 
 
 class JsonPointerException(Exception):
