@@ -34,12 +34,14 @@
 __author__ = 'Stefan Kögl <stefan@skoegl.net>'
 __version__ = '3.11'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
-__license__ = 'Modified BSD License'
+__license__ = 'BSD-3-Clause'
 
 import copy
+import itertools
 import re
+import warnings
 from collections.abc import Mapping, Sequence
-from itertools import tee, chain
+from itertools import chain
 
 _nothing = object()
 
@@ -128,19 +130,13 @@ def pairwise(iterable):
 
     s -> (s0,s1), (s1,s2), (s2, s3), ...
 
-    >>> list(pairwise([]))
-    []
-
-    >>> list(pairwise([1]))
-    []
-
-    >>> list(pairwise([1, 2, 3, 4]))
-    [(1, 2), (2, 3), (3, 4)]
+    .. deprecated:: 3.12
+       Use :func:`itertools.pairwise` instead.
     """
-    a, b = tee(iterable)
-    for _ in b:
-        break
-    return zip(a, b)
+    warnings.warn('jsonpointer.pairwise() is deprecated, '
+                  'use itertools.pairwise() instead',
+                  DeprecationWarning, stacklevel=2)
+    return itertools.pairwise(iterable)
 
 
 class JsonPointerException(Exception):
@@ -163,7 +159,7 @@ class JsonPointer:
 
     # Array indices must not contain:
     # leading zeros, signs, spaces, decimals, etc
-    _RE_ARRAY_INDEX = re.compile('0|[1-9][0-9]*$')
+    _RE_ARRAY_INDEX = re.compile('0|[1-9][0-9]*')
     _RE_INVALID_ESCAPE = re.compile('(~[^01]|~$)')
 
     def __init__(self, pointer):
@@ -327,8 +323,6 @@ class JsonPointer:
 
         part = JsonPointer.get_part(doc, part)
 
-        assert hasattr(doc, '__getitem__'), "invalid document type %s" % (type(doc),)
-
         if isinstance(doc, Sequence):
             if part == '-':
                 return EndOfList(doc)
@@ -387,7 +381,7 @@ class JsonPointer:
         return self.contains(item)
 
     def join(self, suffix):
-        """ Returns a new JsonPointer with the given suffix append to this ptr """
+        """ Returns a new JsonPointer with the given suffix appended to this ptr """
         if isinstance(suffix, JsonPointer):
             suffix_parts = suffix.parts
         elif isinstance(suffix, str):
@@ -396,8 +390,8 @@ class JsonPointer:
             suffix_parts = suffix
         try:
             return self.__class__.from_parts(chain(self.parts, suffix_parts))
-        except Exception:
-            raise JsonPointerException("Invalid suffix")
+        except Exception as e:
+            raise JsonPointerException("Invalid suffix") from e
 
     def __truediv__(self, suffix):
         return self.join(suffix)
@@ -406,7 +400,8 @@ class JsonPointer:
     def path(self):
         """Returns the string representation of the pointer
 
-        >>> ptr = JsonPointer('/~0/0/~1').path == '/~0/0/~1'
+        >>> JsonPointer('/~0/0/~1').path == '/~0/0/~1'
+        True
         """
         parts = [escape(part) for part in self.parts]
         return ''.join('/' + part for part in parts)
@@ -414,7 +409,7 @@ class JsonPointer:
     def __eq__(self, other):
         """Compares a pointer to another object
 
-        Pointers can be compared by comparing their strings (or splitted
+        Pointers can be compared by comparing their strings (or split
         strings), because no two different parts can point to the same
         structure in an object (eg no different number representations)
         """
@@ -435,7 +430,7 @@ class JsonPointer:
 
     @classmethod
     def from_parts(cls, parts):
-        """Constructs a JsonPointer from a list of (unescaped) paths
+        """Constructs a JsonPointer from a list of (unescaped) parts
 
         >>> JsonPointer.from_parts(['a', '~', '/', 0]).path == '/a/~0/~1/0'
         True

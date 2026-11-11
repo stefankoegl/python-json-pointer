@@ -1,9 +1,9 @@
 Tutorial
 ========
 
-Please refer to `RFC 6901 <http://tools.ietf.org/html/rfc6901>`_ for the exact
-pointer syntax. ``jsonpointer`` has two interfaces. The ``resolve_pointer``
-method is basically a deep ``get``.
+Please refer to `RFC 6901 <https://datatracker.ietf.org/doc/html/rfc6901>`_ for the exact
+pointer syntax. The ``resolve_pointer``
+function is basically a deep ``get``.
 
 .. code-block:: python
 
@@ -29,7 +29,7 @@ method is basically a deep ``get``.
     True
 
 
-The ``set_pointer`` method allows modifying a portion of an object using
+The ``set_pointer`` function allows modifying a portion of an object using
 JSON pointer notation:
 
 .. code-block:: python

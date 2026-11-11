@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import io
 import os.path
 import re
 
@@ -8,7 +7,8 @@ from setuptools import setup
 
 dirname = os.path.dirname(os.path.abspath(__file__))
 filename = os.path.join(dirname, 'jsonpointer.py')
-src = io.open(filename, encoding='utf-8').read()
+with open(filename, encoding='utf-8') as f:
+    src = f.read()
 metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", src))
 docstrings = re.findall('"""(.*)"""', src)
 
@@ -21,20 +21,18 @@ MODULES = (
 AUTHOR_EMAIL = metadata['author']
 VERSION = metadata['version']
 WEBSITE = metadata['website']
-LICENSE = metadata['license']
 DESCRIPTION = docstrings[0]
 
 # Extract name and e-mail ("Firstname Lastname <mail@example.org>")
 AUTHOR, EMAIL = re.match(r'(.*) <(.*)>', AUTHOR_EMAIL).groups()
 
-with open('README.md') as readme:
+with open(os.path.join(dirname, 'README.md'), encoding='utf-8') as readme:
     long_description = readme.read()
 
 CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
     'Environment :: Console',
     'Intended Audience :: Developers',
-    'License :: OSI Approved :: BSD License',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Programming Language :: Python :: 3',
@@ -43,6 +41,7 @@ CLASSIFIERS = [
     'Programming Language :: Python :: 3.12',
     'Programming Language :: Python :: 3.13',
     'Programming Language :: Python :: 3.14',
+    'Programming Language :: Python :: 3.15',
     'Programming Language :: Python :: Implementation :: CPython',
     'Programming Language :: Python :: Implementation :: PyPy',
     'Topic :: Software Development :: Libraries',
@@ -58,7 +57,7 @@ setup(
     long_description_content_type="text/markdown",
     author=AUTHOR,
     author_email=EMAIL,
-    license=LICENSE,
+    license_expression='BSD-3-Clause',
     url=WEBSITE,
     py_modules=MODULES,
     # PEP 561 stub-only package, shipped in the same distribution

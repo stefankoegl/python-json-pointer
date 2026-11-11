@@ -1,6 +1,11 @@
 include AUTHORS
 include LICENSE.txt
-include README.md
+include makefile
+include requirements-dev.txt
+include .coveragerc
 include tests.py
 include doc/*.rst
+include doc/conf.py
+include doc/Makefile
+include doc/requirements.txt
 recursive-include jsonpointer-stubs *.pyi
