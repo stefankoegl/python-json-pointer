@@ -2,7 +2,8 @@ The ``jsonpointer`` commandline utility
 =======================================
 
 The JSON pointer package also installs a ``jsonpointer`` commandline utility
-that can be used to resolve a JSON pointer on JSON files.
+that can be used to resolve a JSON pointer on JSON files. It can also be run
+as ``python -m jsonpointer``.
 
 The program has the following usage ::
 
