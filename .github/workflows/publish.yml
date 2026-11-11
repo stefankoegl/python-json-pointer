@@ -22,9 +22,9 @@
 # Releasing:
 #
 #   Bump __version__ in jsonpointer.py, commit, tag, push the tag, and publish
-#   a GitHub release for that tag. The workflow builds the sdist and wheel and
-#   uploads them to PyPI. Running the workflow manually ("Run workflow") uploads
-#   to TestPyPI instead.
+#   a GitHub release for that tag. The workflow runs the tests, builds the
+#   sdist and wheel and uploads them to PyPI. Running the workflow manually
+#   ("Run workflow") uploads to TestPyPI instead.
 
 name: Publish to PyPI
 
@@ -35,7 +35,7 @@ on:
 
 jobs:
   build:
-    name: Build distributions
+    name: Test and build distributions
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -51,6 +51,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install build twine
+
+      # Don't publish a release whose tests fail
+      - name: Run tests
+        run: python -m unittest
 
       - name: Build sdist and wheel
         run: python -m build
