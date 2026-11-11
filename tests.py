@@ -5,7 +5,6 @@ import doctest
 import io
 import json
 import os
-import runpy
 import shlex
 import subprocess
 import sys
@@ -644,7 +643,7 @@ class CommandLineTests(unittest.TestCase):
     """ Tests the jsonpointer command line utility """
 
     ROOT = os.path.dirname(os.path.abspath(__file__))
-    SCRIPT = os.path.join(ROOT, 'bin', 'jsonpointer')
+    COMMAND = [sys.executable, '-m', 'jsonpointer']
 
     A_OUT = '[1, 2, 3]\n'
     B_OUT = '{"b": [1, 3, 4]}\n'
@@ -668,12 +667,11 @@ class CommandLineTests(unittest.TestCase):
             # Keep pipes in UTF-8 while exercising locale-dependent file I/O.
             env.update(PYTHONUTF8='0', PYTHONIOENCODING='utf-8',
                        LC_ALL='C', PYTHONCOERCECLOCALE='0')
-        return subprocess.run([sys.executable, self.SCRIPT] + list(args),
+        return subprocess.run(self.COMMAND + list(args),
                               cwd=self.dir, env=env, capture_output=True,
                               encoding='utf-8')
 
     def _run_with_retained_files(self, *args):
-        cli = runpy.run_path(self.SCRIPT)
         opened = []
         original_open = open
 
@@ -683,11 +681,11 @@ class CommandLineTests(unittest.TestCase):
             self.addCleanup(file_obj.close)
             return file_obj
 
-        with mock.patch.object(sys, 'argv', [self.SCRIPT] + list(args)), \
+        with mock.patch.object(sys, 'argv', ['jsonpointer'] + list(args)), \
                 mock.patch('builtins.open', side_effect=retain_file), \
                 redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
             try:
-                return cli['resolve_files']()
+                return jsonpointer._resolve_files()
             finally:
                 self.assertTrue(opened)
                 self.assertTrue(all(file_obj.closed for file_obj in opened))
@@ -720,16 +718,15 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 2)
 
     def test_pointer_decoding_error_keeps_stdin_open(self):
-        cli = runpy.run_path(self.SCRIPT)
         stdin = io.TextIOWrapper(io.BytesIO(b'/\xff'), encoding='utf-8')
         self.addCleanup(stdin.close)
-        args = [self.SCRIPT, '-f', '-', os.path.join(self.dir, 'a.json')]
+        args = ['jsonpointer', '-f', '-', os.path.join(self.dir, 'a.json')]
         with mock.patch.object(sys, 'argv', args), \
                 mock.patch.object(sys, 'stdin', stdin), \
                 mock.patch('builtins.open') as open_file, \
                 redirect_stderr(io.StringIO()):
             with self.assertRaises(SystemExit) as caught:
-                cli['resolve_files']()
+                jsonpointer._resolve_files()
             self.assertEqual(caught.exception.code, 2)
             open_file.assert_not_called()
         self.assertFalse(stdin.closed)
@@ -743,25 +740,23 @@ class CommandLineTests(unittest.TestCase):
             os.path.join(self.dir, 'a.json')))
 
     def test_keeps_stdin_open(self):
-        cli = runpy.run_path(self.SCRIPT)
         for args, content in ((['/a', '-'], '{"a": 1}'),
                               (['-f', '-', os.path.join(self.dir, 'a.json')], '/a\n')):
             with self.subTest(args=args):
                 stdin = io.StringIO(content)
                 self.addCleanup(stdin.close)
-                with mock.patch.object(sys, 'argv', [self.SCRIPT] + args), \
+                with mock.patch.object(sys, 'argv', ['jsonpointer'] + args), \
                         mock.patch.object(sys, 'stdin', stdin), \
                         redirect_stdout(io.StringIO()):
-                    self.assertTrue(cli['resolve_files']())
+                    self.assertTrue(jsonpointer._resolve_files())
                 self.assertFalse(stdin.closed)
 
     def test_keyboard_interrupt_exit_status(self):
-        cli = runpy.run_path(self.SCRIPT)
-        args = [self.SCRIPT, '/a', os.path.join(self.dir, 'a.json')]
+        args = ['jsonpointer', '/a', os.path.join(self.dir, 'a.json')]
         with mock.patch.object(sys, 'argv', args), \
                 mock.patch('json.load', side_effect=KeyboardInterrupt):
             with self.assertRaises(SystemExit) as caught:
-                cli['main']()
+                jsonpointer.main()
         self.assertEqual(caught.exception.code, 130)
 
     def test_utf8_json_file_without_utf8_mode(self):
@@ -1030,7 +1025,7 @@ class DocExampleTests(unittest.TestCase):
     """ Runs the shell examples from the documentation """
 
     ROOT = os.path.dirname(os.path.abspath(__file__))
-    SCRIPT = os.path.join(ROOT, 'bin', 'jsonpointer')
+    COMMAND = [sys.executable, '-m', 'jsonpointer']
 
     def _examples(self, name):
         """ Yields (command, expected output) pairs of the shell sessions in
@@ -1079,7 +1074,7 @@ class DocExampleTests(unittest.TestCase):
                     continue
 
                 self.assertEqual(args[0], 'jsonpointer')
-                result = subprocess.run([sys.executable, self.SCRIPT] + args[1:],
+                result = subprocess.run(self.COMMAND + args[1:],
                                         cwd=tmpdir.name, env=env,
                                         capture_output=True, encoding='utf-8')
                 self.assertEqual(result.returncode, 0, result.stderr)

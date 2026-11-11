@@ -1,3 +1,48 @@
 [build-system]
 requires = ["setuptools>=77.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "jsonpointer"
+dynamic = ["version"]
+description = "Identify specific nodes in a JSON document (RFC 6901)"
+readme = "README.md"
+license = "BSD-3-Clause"
+license-files = ["LICENSE.txt", "AUTHORS"]
+authors = [{ name = "Stefan Kögl", email = "stefan@skoegl.net" }]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+
+[project.scripts]
+jsonpointer = "jsonpointer:main"
+
+[project.urls]
+Homepage = "https://github.com/stefankoegl/python-json-pointer"
+
+[tool.setuptools]
+py-modules = ["jsonpointer"]
+# PEP 561 stub-only package, shipped in the same distribution
+packages = ["jsonpointer-stubs"]
+
+[tool.setuptools.package-data]
+jsonpointer-stubs = ["__init__.pyi"]
+
+[tool.setuptools.dynamic]
+version = { attr = "jsonpointer.__version__" }
