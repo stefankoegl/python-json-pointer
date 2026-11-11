@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(
 # Accept pointer as option, as file or as first positional argument
 ptr_group = parser.add_mutually_exclusive_group()
 
-ptr_group.add_argument('-f', '--pointer-file', type=argparse.FileType('r', encoding='utf-8'),
+ptr_group.add_argument('-f', '--pointer-file', type=str,
                        help='File containing a JSON pointer expression')
 
 ptr_group.add_argument('-p', '--pointer', type=str,
@@ -44,6 +44,19 @@ def main():
         sys.exit(1)
 
 
+def open_input(name):
+    """ Open a UTF-8 input file, or return stdin for "-"
+
+    Exits with a usage error if the file cannot be opened. """
+    if name == '-':
+        return sys.stdin
+
+    try:
+        return open(name, encoding='utf-8')
+    except OSError as e:
+        parser.error("can't open '%s': %s" % (name, e))
+
+
 def parse_pointer(args):
     """ Return the parsed pointer and the list of files to resolve it on
 
@@ -60,13 +73,14 @@ def parse_pointer(args):
         else:
             # Strip only the trailing line ending; other whitespace may be
             # part of a member name.
+            pointer_file = open_input(args.pointer_file)
             try:
-                ptr = args.pointer_file.read().rstrip("\r\n")
+                ptr = pointer_file.read().rstrip("\r\n")
             except UnicodeDecodeError as e:
                 parser.error('could not decode pointer file: %s' % e)
             finally:
-                if args.pointer_file is not sys.stdin:
-                    args.pointer_file.close()
+                if pointer_file is not sys.stdin:
+                    pointer_file.close()
 
     elif args.POINTER is not None:
         ptr = args.POINTER
@@ -95,10 +109,7 @@ def resolve_files():
     ok = True
 
     for name in files:
-        try:
-            f = argparse.FileType('r', encoding='utf-8')(name)
-        except argparse.ArgumentTypeError as e:
-            parser.error(str(e))
+        f = open_input(name)
 
         try:
             doc = json.load(f)
