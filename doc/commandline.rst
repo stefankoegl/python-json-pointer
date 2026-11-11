@@ -35,8 +35,8 @@ JSON input files and pointer files are read as UTF-8.
 
 The exit status is 0 if the pointer could be resolved on all files, 1 if it
 could not be resolved on at least one file (the remaining files are still
-processed) and 2 on usage errors, such as an invalid pointer or a missing
-file.
+processed), 2 on usage errors, such as an invalid pointer or a missing
+file, and 130 if interrupted with Ctrl-C.
 
 By default, invalid JSON or a text decoding error stops processing. With
 ``--continue-on-error``, these errors are reported on standard error with

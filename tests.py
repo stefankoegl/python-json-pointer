@@ -766,6 +766,15 @@ class CommandLineTests(unittest.TestCase):
                     self.assertTrue(cli['resolve_files']())
                 self.assertFalse(stdin.closed)
 
+    def test_keyboard_interrupt_exit_status(self):
+        cli = runpy.run_path(self.SCRIPT)
+        args = [self.SCRIPT, '/a', os.path.join(self.dir, 'a.json')]
+        with mock.patch.object(sys, 'argv', args), \
+                mock.patch('json.load', side_effect=KeyboardInterrupt):
+            with self.assertRaises(SystemExit) as caught:
+                cli['main']()
+        self.assertEqual(caught.exception.code, 130)
+
     def test_utf8_json_file_without_utf8_mode(self):
         self._write('unicode.json', '{"value": "🚀"}')
         proc = self._run('/value', 'unicode.json', utf8=False)
@@ -981,6 +990,12 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 2)
         self.assertEqual(proc.stdout, self.A_OUT)
         self.assertIn('missing.json', proc.stderr)
+
+    def test_missing_pointer_file(self):
+        proc = self._run('-f', 'missing.txt', 'a.json')
+        self.assertEqual(proc.returncode, 2)
+        self.assertEqual(proc.stdout, '')
+        self.assertIn("can't open 'missing.txt'", proc.stderr)
 
     def test_pointer_file_requires_value(self):
         proc = self._run('-f', '-p', '/a', 'a.json')
