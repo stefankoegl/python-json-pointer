@@ -95,6 +95,35 @@ class SpecificationTests(unittest.TestCase):
         set_pointer(doc, '/~01', 'updated')
         self.assertEqual(doc, {'~1': 'updated', '/': 'slash member'})
 
+    def test_unicode_members_are_matched_without_normalization(self):
+        # RFC 6901 section 4 requires exact matching without Unicode normalization.
+        composed = '\u00e9'
+        decomposed = 'e\u0301'
+        doc = {composed: 'composed', decomposed: 'decomposed'}
+
+        for member, value in doc.items():
+            with self.subTest(member=member):
+                pointer = JsonPointer.from_parts([member])
+                self.assertEqual(pointer.parts, [member])
+                self.assertEqual(JsonPointer(pointer.path).parts, [member])
+                self.assertEqual(pointer.resolve(doc), value)
+
+                updated = pointer.set(doc, 'changed', inplace=False)
+                self.assertEqual(updated[member], 'changed')
+                other = decomposed if member == composed else composed
+                self.assertEqual(updated[other], doc[other])
+                self.assertEqual(doc[member], value)
+
+    def test_unicode_normalization_does_not_make_a_missing_member_match(self):
+        doc = {'\u00e9': 'composed'}
+        pointer = JsonPointer('/e\u0301')
+        fallback = object()
+
+        self.assertIs(pointer.resolve(doc, default=fallback), fallback)
+        with self.assertRaises(JsonPointerException):
+            pointer.resolve(doc)
+        self.assertEqual(doc, {'\u00e9': 'composed'})
+
     def test_str_and_repr(self):
         paths = [
             ("", "", "JsonPointer('')"),
