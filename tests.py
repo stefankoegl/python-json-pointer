@@ -124,6 +124,18 @@ class SpecificationTests(unittest.TestCase):
             pointer.resolve(doc)
         self.assertEqual(doc, {'\u00e9': 'composed'})
 
+    def test_percent_encoded_member_names_stay_literal(self):
+        for literal, decoded in [('a%2Fb', 'a/b'), ('%7E1', '~1'), ('%25', '%')]:
+            with self.subTest(member=literal):
+                doc = {literal: 'literal', decoded: 'decoded'}
+                pointer = JsonPointer.from_parts([literal])
+                self.assertEqual(pointer.path, '/' + literal)
+                self.assertEqual(JsonPointer(pointer.path).resolve(doc), 'literal')
+
+                updated = pointer.set(doc, 'changed', inplace=False)
+                self.assertEqual(updated, {literal: 'changed', decoded: 'decoded'})
+                self.assertEqual(doc, {literal: 'literal', decoded: 'decoded'})
+
     def test_str_and_repr(self):
         paths = [
             ("", "", "JsonPointer('')"),
