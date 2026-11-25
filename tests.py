@@ -12,6 +12,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
+from array import array
 from collections import defaultdict
 from contextlib import redirect_stderr, redirect_stdout
 from unittest import mock
@@ -551,6 +552,15 @@ class SetTests(unittest.TestCase):
                     with self.assertRaisesRegex(JsonPointerException, "Invalid assignment target:"):
                         set_pointer(doc, pointer, "invalid", inplace=inplace, create=create)
                     self.assertEqual(doc, {"items": bytearray([1])})
+
+    def test_set_sequence_rejects_out_of_range_value(self):
+        for sequence in (bytearray([1]), array('b', [1])):
+            for pointer, create in (("/0", False), ("/-", False), ("/1", True)):
+                for inplace in (False, True):
+                    with self.subTest(sequence=type(sequence), pointer=pointer, inplace=inplace):
+                        with self.assertRaisesRegex(JsonPointerException, "Invalid assignment target:"):
+                            set_pointer(sequence, pointer, 300, inplace=inplace, create=create)
+                        self.assertEqual(list(sequence), [1])
 
     def test_set_create_sequence_append_invalid_child(self):
         for pointer in ("/items/-/leaf", "/items/1/leaf"):
