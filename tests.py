@@ -976,6 +976,39 @@ class CommandLineTests(unittest.TestCase):
                               proc.stderr)
                 self.assertNotIn('Traceback', proc.stderr)
 
+    @unittest.skipUnless(hasattr(sys, 'get_int_max_str_digits'),
+                         'Integer string conversion limits are not available')
+    def test_large_json_integer_in_one_file(self):
+        self._write('large-integer.json', '{"a": ' + '1' * 641 + '}')
+        with mock.patch.dict(os.environ, {'PYTHONINTMAXSTRDIGITS': '640'}):
+            for index in range(3):
+                with self.subTest(index=index):
+                    files = ['a.json', 'b.json']
+                    files.insert(index, 'large-integer.json')
+                    proc = self._run('--continue-on-error', '/a', *files)
+                    self.assertEqual(proc.returncode, 1)
+                    self.assertEqual(proc.stdout, self.A_OUT + self.B_OUT)
+                    self.assertIn(
+                        "Could not parse JSON in 'large-integer.json':",
+                        proc.stderr)
+                    self.assertIn('digits', proc.stderr)
+                    self.assertNotIn('Traceback', proc.stderr)
+
+    @unittest.skipUnless(hasattr(sys, 'get_int_max_str_digits'),
+                         'Integer string conversion limits are not available')
+    def test_large_json_integer_stops_without_continue_on_error(self):
+        self._write('large-integer.json', '{"a": ' + '1' * 641 + '}')
+        with mock.patch.dict(os.environ, {'PYTHONINTMAXSTRDIGITS': '640'}):
+            for index in range(3):
+                with self.subTest(index=index):
+                    files = ['a.json', 'b.json']
+                    files.insert(index, 'large-integer.json')
+                    proc = self._run('/a', *files)
+                    self.assertEqual(proc.returncode, 1)
+                    self.assertEqual(
+                        proc.stdout, ''.join([self.A_OUT, self.B_OUT][:index]))
+                    self.assertIn('ValueError', proc.stderr)
+
     def test_invalid_json_and_unresolvable_pointer(self):
         self._write('invalid.json', '{"a": }')
         proc = self._run('--continue-on-error', '/b',

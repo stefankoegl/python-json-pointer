@@ -113,7 +113,7 @@ def resolve_files():
 
         try:
             doc = json.load(f)
-        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        except ValueError as e:
             if not args.continue_on_error:
                 raise
             print('Could not parse JSON in %r: %s' % (name, e),
