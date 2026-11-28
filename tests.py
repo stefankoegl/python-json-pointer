@@ -816,7 +816,7 @@ class CommandLineTests(unittest.TestCase):
         cli = runpy.run_path(self.SCRIPT)
         args = [self.SCRIPT, '/a', os.path.join(self.dir, 'a.json')]
         with mock.patch.object(sys, 'argv', args), \
-                mock.patch('json.load', side_effect=KeyboardInterrupt):
+                mock.patch('json.loads', side_effect=KeyboardInterrupt):
             with self.assertRaises(SystemExit) as caught:
                 cli['main']()
         self.assertEqual(caught.exception.code, 130)
@@ -835,6 +835,20 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(json.loads(proc.stdout), 'expected')
         self.assertEqual(proc.stderr, '')
+
+    def test_utf8_piped_input_with_legacy_stdio_encoding(self):
+        self._write('unicode.json', json.dumps({'ä': 'expected', 'Ã¤': 'wrong'}))
+        env = dict(os.environ, PYTHONPATH=self.ROOT, PYTHONUTF8='0',
+                   PYTHONIOENCODING='cp1252')
+        for args, stdin in ((['/ä', '-'], '{"ä": "expected"}'),
+                            (['-f', '-', 'unicode.json'], '/ä\n')):
+            with self.subTest(args=args):
+                proc = subprocess.run([sys.executable, self.SCRIPT] + args,
+                                      cwd=self.dir, env=env, capture_output=True,
+                                      input=stdin.encode('utf-8'))
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                self.assertEqual(json.loads(proc.stdout), 'expected')
+                self.assertEqual(proc.stderr, b'')
 
     def test_positional_pointer(self):
         proc = self._run('/a', 'a.json', 'b.json')

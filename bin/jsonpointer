@@ -57,6 +57,13 @@ def open_input(name):
         parser.error("can't open '%s': %s" % (name, e))
 
 
+def read_input(stream):
+    """Decode redirected stdin using the same encoding as named files."""
+    if stream is sys.stdin and not stream.isatty() and hasattr(stream, 'buffer'):
+        return stream.buffer.read().decode('utf-8')
+    return stream.read()
+
+
 def parse_pointer(args):
     """ Return the parsed pointer and the list of files to resolve it on
 
@@ -75,7 +82,7 @@ def parse_pointer(args):
             # part of a member name.
             pointer_file = open_input(args.pointer_file)
             try:
-                ptr = pointer_file.read().rstrip("\r\n")
+                ptr = read_input(pointer_file).rstrip("\r\n")
             except UnicodeDecodeError as e:
                 parser.error('could not decode pointer file: %s' % e)
             finally:
@@ -112,7 +119,7 @@ def resolve_files():
         f = open_input(name)
 
         try:
-            doc = json.load(f)
+            doc = json.loads(read_input(f))
         except (json.JSONDecodeError, UnicodeDecodeError) as e:
             if not args.continue_on_error:
                 raise
